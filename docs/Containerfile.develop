@@ -1,0 +1,8 @@
+FROM docker.io/node:20
+
+EXPOSE 3000
+
+WORKDIR /workspace
+
+RUN npm install -g npm@latest
+
