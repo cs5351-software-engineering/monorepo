@@ -1,0 +1,143 @@
+services:
+
+  frontend:
+    image: frontend-release-image
+    container_name: frontend
+    ports:
+      - "3000:3000"
+
+
+  nestjs_database:
+    image: postgres:15
+    container_name: nestjs_database
+    environment:
+      POSTGRES_DB: code-analysis
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - nestjs_database_data:/var/lib/postgresql/data
+    # ports:
+    #   - "5432:5432"
+
+
+  nestjs_backend:
+    image: backend-release-image
+    container_name: nestjs_backend
+    environment:
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION}
+      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
+
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+
+      - TYPEORM_SYNCHRONIZE=${TYPEORM_SYNCHRONIZE}
+      - TYPEORM_LOGGING=${TYPEORM_LOGGING}
+      - TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}
+      - TYPEORM_MIGRATIONS_DIR=${TYPEORM_MIGRATIONS_DIR}
+
+      - DB_DATABASE=code-analysis
+      - DB_HOST=nestjs_database
+      - DB_PASSWORD=admin
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+    # ports:
+    #   - "3000:3000"
+    depends_on:
+      - nestjs_database
+
+
+  # https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: pgadmin
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=1234
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - '5050:80'
+    depends_on:
+      - nestjs_database
+    stop_signal: SIGKILL
+
+
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube
+    depends_on:
+      - sonarqube_database
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonarqube_database:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_temp:/opt/sonarqube/temp
+    # ports:
+    #   - "9000:9000"
+  
+
+  sonarqube_database:
+    image: postgres:15
+    container_name: sonarqube_database
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+    volumes:
+      - sonarqube_database:/var/lib/postgresql
+      - sonarqube_database_data:/var/lib/postgresql/data
+    # ports:
+    #   - "5432:5432"
+  
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    # ports:
+    #   - 11434:11434
+
+    # Enable GPU
+    # https://stackoverflow.com/questions/70761192/docker-compose-equivalent-of-docker-run-gpu-all-option
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all # alternatively, use `count: all` for all GPUs
+              capabilities: [gpu]
+
+  minio: 
+    image: quay.io/minio/minio 
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: test
+      MINIO_ROOT_PASSWORD: test1234
+    ports:
+      - "10000:9000"
+      - "10001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001" 
+
+
+volumes:
+  nestjs_database_data:
+  pgadmin_data:
+
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  sonarqube_temp:
+
+  sonarqube_database:
+  sonarqube_database_data:
+
+  minio_data:
+
