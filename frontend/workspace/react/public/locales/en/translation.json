@@ -1,0 +1,20 @@
+{
+    "homepage":{
+
+    },
+    "loginPage":{
+        "createAccount":"Create your account",
+        "loginAccount":"Please login in your account",
+        "switchSignUp":{
+            "loginState":"Don't have an account?",
+            "signUpButton":"Sign up here",
+            "signUpState":"Already have an account?",
+            "loginButton":"Log in here"
+        },
+        "placeholder":{
+            "username":"Please input the username/email address.",
+            "password":"Please input the password.",
+            "confirmPassowrd":"Please input the password again."
+        }
+    }
+}

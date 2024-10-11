@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;400;600;700&display=swap');
+
+.confirm-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  font-family: 'Poppins', sans-serif;
+}
+
+.confirm-dialog {
+  background: linear-gradient(106.37deg, #ffe1bc 29.63%, #ffcfd1 51.55%, #f3c6f1 90.85%);
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 400px;  /* Increased from 300px */
+  color: #242d49;
+}
+
+.confirm-dialog h2 {
+  font-size: 2rem;  /* Increased from 1.5rem */
+  margin-bottom: 20px;  /* Increased from 15px */
+  text-align: center;
+}
+
+.confirm-dialog p {
+  font-size: 1.2rem;  /* Increased from 1rem */
+  margin-bottom: 30px;  /* Increased from 20px */
+  text-align: center;
+}
+
+.confirm-dialog-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.confirm-dialog-buttons button {
+  padding: 12px 25px;  /* Increased from 10px 20px */
+  border: none;
+  border-radius: 8px;  /* Increased from 5px */
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;  /* Added font size */
+  transition: all 300ms ease;
+}
+
+.cancel-button {
+  background-color: #f0f0f0;
+  color: #242d49;
+}
+
+.confirm-button {
+  background: var(--pink);
+  color: white;
+}
+
+.cancel-button:hover, .confirm-button:hover {
+  transform: scale(0.98);
+}
+
+/* Add this to your App.css or create a new CSS file for global variables */
+:root {
+  --yellow: linear-gradient(180deg, #F8D49A -146.42%, #FAD79D -46.42%);
+  --orange: #fca61f;
+  --black: #242d49;
+  --gray: #788097;
+  --purple: linear-gradient(180deg, #BB67FF 0%, #C484F3 100%);
+  --pink: #FF919D;
+  --glass: rgba(255, 255, 255, 0.54);
+  --boxShadow: 0px 19px 60px rgb(0 0 0 / 8%);
+  --smboxShadow: -79px 51px 60px rgba(0, 0, 0, 0.08);
+  --activeItem: #f799a354;
+}
+
+.confirm-dialog .timer {
+  font-size: 1rem;
+  text-align: center;
+  margin-bottom: 20px;
+  color: var(--pink);
+}
