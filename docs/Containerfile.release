@@ -1,7 +1,0 @@
-FROM docusaurus-develop-image
-
-COPY . /workspace/docusaurus-website
-
-WORKDIR /workspace/docusaurus-website
-
-RUN npm install
