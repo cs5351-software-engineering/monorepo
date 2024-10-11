@@ -1,0 +1,4 @@
+FROM ollama-develop-image
+
+COPY ./workspace /workspace
+

@@ -1,0 +1,1 @@
+docker container kill ollama-release-container
