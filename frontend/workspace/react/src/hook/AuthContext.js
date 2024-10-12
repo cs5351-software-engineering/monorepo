@@ -7,8 +7,6 @@ import { ROUTES } from '../constants/routes';
 
 export const AuthContext = createContext();
 
-// Remove this line
-// const GITHUB_CLIENT_ID = 'Ov23liVVZLlEsxcoDUcx';
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -17,9 +15,10 @@ export const AuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
-    const storedAuth = localStorage.getItem('isAuthenticated');
+    const accessToken = localStorage.getItem('access_token');
+    const refreshToken = localStorage.getItem('access_token');
     const storedUser = localStorage.getItem('user');
-    if (storedAuth === 'true') {
+    if (accessToken &&refreshToken ) {  //later do more auth
       setIsAuthenticated(true);
       setUser(JSON.parse(storedUser));
     }
@@ -35,7 +34,7 @@ export const AuthProvider = ({ children }) => {
 
     const params = new URLSearchParams({
       client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
-      redirect_uri: `http://localhost:3000${ROUTES.LOGIN_CALLBACK}`,
+      redirect_uri: `${window.location.origin}${ROUTES.LOGIN_CALLBACK}`,
       response_type: 'code',
       scope: 'openid email profile',
       state: state,
@@ -47,31 +46,63 @@ export const AuthProvider = ({ children }) => {
   }
 
   const handleGoogleCallback = async (code) => {
+    console.log("Authorization code received:", code);
 
-    console.log(code);
-    const codeVerifier = localStorage.getItem('code_verifier');
-    try {
-      const response = await axios.post(API.GET_TOKEN, {
-        code: code,
-        codeVerifier: codeVerifier,
-        redirect_uri: `http://localhost:3000${ROUTES.LOGIN_CALLBACK}`
-      }, { withCredentials: true });
-
-      if (response.status === 200) {
-        //assign token to local storage
-        return response
-      } else {
-        //nothing
-        console.error('Authentication failed:', response);
-        return response
-      }
-    } catch (error) {
-      //most likely server down
-      console.error('Error exchanging code:', error);
-      return { "status": "500" }
+    // Retrieve the code verifier from storage
+    const codeVerifier = localStorage.getItem('code_verifier'); // Consider using sessionStorage
+    if (!codeVerifier) {
+      console.error('Code verifier not found in storage.');
+      return { status: 400, message: "Invalid request: Code verifier missing." };
     }
 
-  }
+    try {
+      const payload = {
+        code,
+        code_verifier: codeVerifier, 
+        redirect_uri: `${window.location.origin}${ROUTES.LOGIN_CALLBACK}`
+      };
+
+      // Make the POST request to exchange the authorization code for tokens
+      const response = await axios.post(API.GET_TOKEN, payload, { withCredentials: true });
+
+      if (response.status === 200) {
+        const { access_token, refresh_token } = response.data;
+
+        if (access_token && refresh_token) {
+          // Store tokens securely
+          localStorage.setItem('access_token', access_token);
+          localStorage.setItem('refresh_token', refresh_token);
+          console.log('Tokens successfully stored.');
+          return { status: 200, data: response.data };
+        } else {
+          console.error('Tokens not found in the response:', response.data);
+          return { status: 500, message: "Tokens missing in the response." };
+        }
+      } else {
+        // Handle unexpected status codes
+        console.error('Authentication failed with status:', response.status, response.data);
+        return { status: response.status, message: 'Authentication failed.' };
+      }
+    } catch (error) {
+      // Handle network or server errors
+      if (error.response) {
+        // Server responded with a status other than 2xx
+        console.error('Server error during token exchange:', error.response.data);
+        return { status: error.response.status, message: error.response.data };
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error('No response received from server:', error.request);
+        return { status: 503, message: 'Service unavailable. Please try again later.' };
+      } else {
+        // Other errors
+        console.error('Error setting up the request:', error.message);
+        return { status: 500, message: 'Internal server error.' };
+      }
+    } finally {
+      localStorage.removeItem('code_verifier'); // Ensure it's removed after use for security
+    }
+  };
+
 
   const initiateGitHubLogin = async () => {
     const codeVerifier = generateCodeVerifier();

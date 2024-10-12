@@ -10,7 +10,7 @@ import ProtectedRoute from "./ProtectedRoute"
 // import schema from "../schema"
 import { BrowserRouter } from "react-router-dom"
 import Dashboard from "../pages/Dashboard"
-import GoogleLoginCallback from "../pages/GoogleCallback"
+import GoogleCallback from "../pages/GoogleCallback"
 import GithubCallback from "../pages/GithubCallbacks"
 import RegisterPage from '../pages/RegisterPage'; // Add this line
 import ForgetPWPage from "../pages/ForgetPWPage";
@@ -23,7 +23,7 @@ const AppRoutes = () => {
                 <Routes>
                     <Route exact path={ROUTES.LOGIN} element={<LoginPage />} />
                     <Route exact path={ROUTES.REGISTER} element={<RegisterPage />} />
-                    <Route path={ROUTES.GOOGLE_CALLBACK} element={<GoogleLoginCallback />} />
+                    <Route path={ROUTES.GOOGLE_CALLBACK} element={<GoogleCallback />} />
                     <Route path={ROUTES.GITHUB_CALLBACK} element={<GithubCallback />} />
                     <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
                     <Route element={<ProtectedRoute />}>
