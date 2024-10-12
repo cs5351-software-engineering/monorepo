@@ -3,7 +3,6 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  ManyToMany,
   PrimaryGeneratedColumn,
   VersionColumn,
 } from 'typeorm';

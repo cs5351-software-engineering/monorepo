@@ -8,7 +8,6 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import axios from 'axios';
 import { TokenExchangeDto } from 'src/common/dto/token-exchange.dto';
 import { Repository } from 'typeorm';
 import { OAuthAccountInfo } from '../oauth-account-info/oauth-account-info.entity';
@@ -80,6 +79,7 @@ export class AuthService {
   private async updateUser(
     user: User,
     profile: any,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     provider: string,
   ): Promise<User> {
     // Update user properties

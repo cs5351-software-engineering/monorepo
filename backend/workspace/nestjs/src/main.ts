@@ -15,10 +15,9 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  //access swagger using hostname:port/api
-  //e.g.http://localhost:3000/api
+  // Access swagger using hostname:port/api
+  // e.g. http://localhost:8080/api
   SwaggerModule.setup('api', app, document);
-  /*configure swagger*/
 
   app.enableCors({
     origin: true,
@@ -29,4 +28,5 @@ async function bootstrap() {
 
   await app.listen(8080);
 }
+
 bootstrap();

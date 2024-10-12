@@ -7,7 +7,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CoreModule } from './core/core.module';
 import { TokenModule } from './modules/token/token.module';
 import { OauthAccountInfoModule } from './modules/oauth-account-info/oauth-account-info.module';
-import { Token } from './modules/token/token.entity';
 import { AuthorizedProjectModule } from './modules/authorized-project/authorized-project.module';
 import { ProjectModule } from './modules/project/project.module';
 import { ProjectVersionModule } from './modules/project-version/project-version.module';

@@ -5,7 +5,6 @@ import {
   PrimaryGeneratedColumn,
   VersionColumn,
 } from 'typeorm';
-import { User } from '../user/user.entity';
 import { AuthorizedProject } from '../authorized-project/authorized-project.entity';
 import { ProjectVersion } from '../project-version/project-version.entity';
 import { Migration } from '../migration/migration.entity';

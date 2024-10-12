@@ -4,11 +4,12 @@ import { RefreshTokenDto } from 'src/common/dto/refresh-token.dto';
 import { TokenExchangeDto } from 'src/common/dto/token-exchange.dto';
 import { AuthService } from './auth.service';
 
-//swagger: add to "auth" tag
+// swagger: add to "auth" tag
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
+
   @Post('token')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Exchange OAuth token for access token' })
