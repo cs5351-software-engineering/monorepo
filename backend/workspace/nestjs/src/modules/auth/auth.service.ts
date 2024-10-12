@@ -14,6 +14,7 @@ import { OAuthAccountInfo } from '../oauth-account-info/oauth-account-info.entit
 import { Token } from '../token/token.entity';
 import { User } from '../user/user.entity';
 import { OAuth2Client } from 'google-auth-library';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -27,7 +28,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private httpService: HttpService,
-  ) {}
+  ) { }
 
   async findOrCreateUser(profile: any, provider: string): Promise<User> {
     // Attempt to retrieve user and their OAuth info simultaneously
@@ -90,7 +91,7 @@ export class AuthService {
   }
 
   async createToken(user: User): Promise<Token> {
-    let token = await this.tokenRepository.findOne({ where: { user: user } });
+    let token = await this.tokenRepository.findOne({ where: { user: { id: user.id } }, relations: ['user'] });
 
     if (!token) {
       token = new Token();
@@ -183,32 +184,44 @@ export class AuthService {
   }
 
   private async verifyGoogleToken(tokenRequest: TokenExchangeDto) {
-    const client = new OAuth2Client(tokenRequest.clientId);
 
+    const tokenEndpoint = 'https://oauth2.googleapis.com/token';
+    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
+    const clientSecret = this.configService.get<string>('GOOGLE_CLIENT_SECRET');
+
+    console.log(tokenRequest.code_verifier)
     try {
-      const ticket = await client.verifyIdToken({
-        idToken: tokenRequest.credential,
-        audience: tokenRequest.clientId,
+      // Exchange the authorization code for tokens
+      const tokenResponse = await axios.post(tokenEndpoint, {
+        client_id: clientId,
+        client_secret: clientSecret,
+        code: tokenRequest.code,
+        code_verifier: tokenRequest.code_verifier,
+        grant_type: 'authorization_code',
+        redirect_uri: tokenRequest.redirect_uri,
+      }, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
       });
 
-      const payload = ticket.getPayload();
+      const accessToken = tokenResponse.data.access_token;
 
-      if (!payload) {
-        throw new HttpException(
-          'Invalid token payload',
-          HttpStatus.BAD_REQUEST,
-        );
+      if (!accessToken) {
+        throw new HttpException('Invalid token response', HttpStatus.BAD_REQUEST);
       }
 
-      console.log(payload);
+      // Fetch user info using the access token
+      const userInfoResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
 
-      return payload;
+      return userInfoResponse.data;
     } catch (error) {
-      console.error('Google token verification error:', error);
-      throw new HttpException(
-        'Failed to verify Google token',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      console.error('Token exchange error:', error.response?.data || error.message);
+      throw new HttpException('Failed to exchange token', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

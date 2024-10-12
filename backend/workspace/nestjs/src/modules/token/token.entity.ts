@@ -4,6 +4,7 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   VersionColumn,
 } from 'typeorm';
@@ -43,7 +44,7 @@ export class Token {
   @VersionColumn()
   version: number;
 
-  @ManyToOne(() => User, (user) => user.tokens)
+  @OneToOne(() => User, (user) => user.token)
   @JoinColumn({ name: 'UserID' })
   user: User;
 }
