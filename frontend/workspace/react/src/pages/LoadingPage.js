@@ -1,6 +1,6 @@
-const LoadingPage=()=>{
+const LoadingPage = () => {
     <>
-    Loading Page
+        Loading Page
     </>
 }
 

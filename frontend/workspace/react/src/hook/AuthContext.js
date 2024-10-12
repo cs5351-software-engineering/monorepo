@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
     const state = 42; // You can implement generateRandomString similarly to codeVerifier
 
     const params = new URLSearchParams({
-      client_id: config.googleClientId,
+      client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
       redirect_uri: 'http://localhost:3000/loginCallback',
       response_type: 'code',
       scope: 'openid email profile',
@@ -45,6 +45,7 @@ export const AuthProvider = ({ children }) => {
 
     window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
   }
+
   const handleGoogleCallback = async (code) => {
 
     console.log(code);
@@ -67,7 +68,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       //most likely server down
       console.error('Error exchanging code:', error);
-      return {"status":"500"}
+      return { "status": "500" }
     }
 
   }
@@ -75,12 +76,12 @@ export const AuthProvider = ({ children }) => {
   const initiateGitHubLogin = async () => {
     const codeVerifier = generateCodeVerifier();
     const codeChallenge = await generateCodeChallenge(codeVerifier);
-    
+
     localStorage.setItem('github_code_verifier', codeVerifier);
 
     const redirectUri = encodeURIComponent(`http://localhost:3000${ROUTES.LOGIN_CALLBACK}`);
     const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${config.githubClientId}&redirect_uri=${redirectUri}&scope=user&code_challenge=${codeChallenge}&code_challenge_method=S256`;
-    
+
     window.location.href = githubAuthUrl;
   };
 
@@ -88,7 +89,7 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('Exchanging code for access token');
       const codeVerifier = localStorage.getItem('github_code_verifier');
-      
+
       const tokenResponse = await axios.post('https://github.com/login/oauth/access_token', {
         client_id: config.githubClientId,
         code_verifier: codeVerifier,

@@ -56,7 +56,7 @@ function Dashboard() {
       });
     }
   };
- 
+
   //Render main content based on menu selection and project selection
   const renderMainContent = () => {
     if (selectedProject) {
@@ -124,32 +124,32 @@ function Dashboard() {
         <Sidebar selected={menuSelection} setSelected={setMenuSelection} />
         {renderMainContent()}
         <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Create New Project</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group controlId="projectName">
-              <Form.Label>Project Name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter project name"
-                value={newProjectName}
-                onChange={(e) => setNewProjectName(e.target.value)}
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
-            Close
-         
-          </Button>
-          <Button variant="primary" onClick={handleCreateProject} disabled={newProjectName.trim() === ''}>
-            Create
-          </Button>
-        </Modal.Footer>
-      </Modal>
+          <Modal.Header closeButton>
+            <Modal.Title>Create New Project</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form>
+              <Form.Group controlId="projectName">
+                <Form.Label>Project Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter project name"
+                  value={newProjectName}
+                  onChange={(e) => setNewProjectName(e.target.value)}
+                />
+              </Form.Group>
+            </Form>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
+              Close
+
+            </Button>
+            <Button variant="primary" onClick={handleCreateProject} disabled={newProjectName.trim() === ''}>
+              Create
+            </Button>
+          </Modal.Footer>
+        </Modal>
         <div></div>
         <div></div>
       </div>

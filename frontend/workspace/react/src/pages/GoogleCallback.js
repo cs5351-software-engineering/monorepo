@@ -8,18 +8,18 @@ import LoadingPage from "./LoadingPage";
 const LoginCallback = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const {handleGoogleCallback}= useAuthContext();
+    const { handleGoogleCallback } = useAuthContext();
     useEffect(() => {
         const handleCallback = async () => {
             const query = new URLSearchParams(location.search);
             const code = query.get('code');
             const state = query.get('state');
             if (code) {
-                const result=await handleGoogleCallback(code);
-                if (result.status===200){
+                const result = await handleGoogleCallback(code);
+                if (result.status === 200) {
                     navigate(ROUTES.DASHBOARD);
                 }
-                else{
+                else {
                     //navigate(ROUTES.LOGIN)
                 }
             } else {
@@ -32,7 +32,7 @@ const LoginCallback = () => {
         handleCallback();
     }, [location.search, navigate]);
 
-    return <LoadingPage/>;
+    return <LoadingPage />;
 
 }
 

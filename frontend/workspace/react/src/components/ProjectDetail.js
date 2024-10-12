@@ -22,36 +22,36 @@ const ProjectDetail = ({ project, onBack, onUploadFile }) => {
   return (
     <>
       <div >
-   
+
         <h2>{project.name}
-        
+
         </h2>
-          
-        
+
+
         <hr />
         <div>
-        <Card className="mb-3">
-          <Card.Body>
-            <h5>Upload Code</h5>
-            {uploadSuccess && <Alert variant="success">File uploaded successfully!</Alert>}
-            <Form onSubmit={handleFileUpload}>
-              <Form.Group controlId="formFile" className="mb-3">
-                <Form.Label>Select File</Form.Label>
-                <Form.Control
-                  type="file"
-                  onChange={(e) => setUploadFile(e.target.files[0])}
-                />
-              </Form.Group>
-              <Button variant="success" type="submit" disabled={!uploadFile}>
-                Upload
-              </Button>
-            </Form>
-          </Card.Body>
-        </Card>
-        <Button className="float-end" variant="secondary" onClick={onBack}>
+          <Card className="mb-3">
+            <Card.Body>
+              <h5>Upload Code</h5>
+              {uploadSuccess && <Alert variant="success">File uploaded successfully!</Alert>}
+              <Form onSubmit={handleFileUpload}>
+                <Form.Group controlId="formFile" className="mb-3">
+                  <Form.Label>Select File</Form.Label>
+                  <Form.Control
+                    type="file"
+                    onChange={(e) => setUploadFile(e.target.files[0])}
+                  />
+                </Form.Group>
+                <Button variant="success" type="submit" disabled={!uploadFile}>
+                  Upload
+                </Button>
+              </Form>
+            </Card.Body>
+          </Card>
+          <Button className="float-end" variant="secondary" onClick={onBack}>
             <FaArrowLeft className="me-2" /> Back to Projects
           </Button>
-    </div>
+        </div>
       </div>
       <Card>
         <Card.Body>
@@ -67,7 +67,7 @@ const ProjectDetail = ({ project, onBack, onUploadFile }) => {
           )}
         </Card.Body>
       </Card>
-      
+
     </>
   );
 };

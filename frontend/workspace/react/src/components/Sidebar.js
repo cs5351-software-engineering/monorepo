@@ -8,7 +8,7 @@ import { useAuthContext } from '../hook/AuthContext';
 import { ROUTES } from '../constants/routes';
 import '../styles/ConfirmDialog.css';
 
-const Sidebar = ({selected,setSelected}) => {
+const Sidebar = ({ selected, setSelected }) => {
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const navigate = useNavigate();
   const { logout } = useAuthContext();
@@ -41,8 +41,8 @@ const Sidebar = ({selected,setSelected}) => {
       <div className='menu'>
         {SidebarData.map((item, index) => {
           return (
-            <div 
-              className={selected === item.heading ? 'menuItem active' : 'menuItem'} 
+            <div
+              className={selected === item.heading ? 'menuItem active' : 'menuItem'}
               key={item}
               onClick={() => setSelected(item.heading)}
             >

@@ -5,9 +5,9 @@ import LoginPage from "../pages/LoginPage"
 import LoadingPage from "../pages/LoadingPage"
 import { ROUTES } from "../constants/routes"
 import ProtectedRoute from "./ProtectedRoute"
-import { yupResolver } from "@hookform/resolvers/yup";
-import { useForm } from "react-hook-form"
-import schema from "../schema"
+// import { yupResolver } from "@hookform/resolvers/yup";
+// import { useForm } from "react-hook-form"
+// import schema from "../schema"
 import { BrowserRouter } from "react-router-dom"
 import Dashboard from "../pages/Dashboard"
 import GoogleLoginCallback from "../pages/GoogleCallback"
@@ -23,10 +23,10 @@ const AppRoutes = () => {
                 <Routes>
                     <Route exact path={ROUTES.LOGIN} element={<LoginPage />} />
                     <Route exact path={ROUTES.REGISTER} element={<RegisterPage />} />
-                    <Route path={ROUTES.GOOGLE_CALLBACK} element={<GoogleLoginCallback/>} />
-                    <Route path={ROUTES.GITHUB_CALLBACK} element={<GithubCallback/>} />
+                    <Route path={ROUTES.GOOGLE_CALLBACK} element={<GoogleLoginCallback />} />
+                    <Route path={ROUTES.GITHUB_CALLBACK} element={<GithubCallback />} />
                     <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
-                    <Route element={<ProtectedRoute/>}>
+                    <Route element={<ProtectedRoute />}>
                         <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
                     </Route>
                     <Route path={ROUTES.HOME} element={<HomePage />} />
@@ -36,4 +36,5 @@ const AppRoutes = () => {
         </BrowserRouter>
     )
 }
+
 export default AppRoutes;

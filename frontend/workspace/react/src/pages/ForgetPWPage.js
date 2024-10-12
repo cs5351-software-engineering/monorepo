@@ -32,7 +32,7 @@ const ForgetPWPage = () => {
                         <p>Remember your password? <Link to={ROUTES.LOGIN}>Login</Link></p>
                     </div>
                 </form>
-            </div>  
+            </div>
         </div>
     );
 }

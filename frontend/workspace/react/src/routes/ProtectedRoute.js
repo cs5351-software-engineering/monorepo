@@ -3,13 +3,13 @@ import { ROUTES } from '../constants/routes';
 import { useAuthContext } from '../hook/AuthContext';
 import LoadingPage from '../pages/LoadingPage';
 
-const ProtectedRoute=({ Component }) =>{
-  const {isAuthenticated,loading}=useAuthContext();
+const ProtectedRoute = ({ Component }) => {
+  const { isAuthenticated, loading } = useAuthContext();
 
-  if(loading){
-    return <LoadingPage/>
+  if (loading) {
+    return <LoadingPage />
   }
-  return isAuthenticated ? <Component/> : <Navigate to={ROUTES.LOGIN} replace />;
+  return isAuthenticated ? <Component /> : <Navigate to={ROUTES.LOGIN} replace />;
 }
 
 export default ProtectedRoute;

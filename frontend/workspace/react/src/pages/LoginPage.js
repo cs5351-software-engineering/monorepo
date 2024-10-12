@@ -13,13 +13,15 @@ import { ROUTES } from '../constants/routes';
 const LoginPage = () => {
     const { handleGoogleLogin, initiateGitHubLogin } = useAuthContext();
     const { t } = useTranslation();
+    const [user, setUser] = React.useState([]);
 
     return (
         <div className="login-page">
             <div className='wrapper'>
                 <form action="">
                     <h1>Login</h1>
-                    <div className='input-box'>
+
+                    {/* <div className='input-box'>
                         <input type="text" placeholder='Username' required />
                         <FaUser className='icon' />
                     </div>
@@ -37,7 +39,7 @@ const LoginPage = () => {
 
                     <div className='register-link'>
                         <p>Don't have an account? <a href="/registration">Register</a></p>
-                    </div>
+                    </div> */}
 
                     <div className='alternative-login'>
                         <div className='divider'>
@@ -49,13 +51,14 @@ const LoginPage = () => {
                         <GoogleLogin
                             onSuccess={credentialResponse => {
                                 console.log(credentialResponse);
-                                handleGoogleLogin(credentialResponse);
+                                setUser(credentialResponse);
+                                // handleGoogleLogin(credentialResponse);
                             }}
                             onError={() => {
                                 console.log('Google Login Failed');
                             }}
                         />
-                        <button className="google-button" onClick={handleGoogleLogin}>
+                        {/* <button className="google-button" onClick={handleGoogleLogin}>
                             <FcGoogle className="button-icon" />
                             <span>Login with Google</span>
                         </button>
@@ -63,10 +66,10 @@ const LoginPage = () => {
                         <button className="github-button" onClick={initiateGitHubLogin}>
                             <FaGithub className="button-icon" />
                             <span>Login with GitHub</span>
-                        </button>
+                        </button> */}
                     </div>
                 </form>
-            </div>  
+            </div>
         </div>
     );
 }
