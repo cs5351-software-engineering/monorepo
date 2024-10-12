@@ -58,11 +58,11 @@ const LoginPage = () => {
                                 console.log('Google Login Failed');
                             }}
                         />
-                        {/* <button className="google-button" onClick={handleGoogleLogin}>
+                        <button className="google-button" onClick={handleGoogleLogin}>
                             <FcGoogle className="button-icon" />
                             <span>Login with Google</span>
                         </button>
-                        
+                        {/*
                         <button className="github-button" onClick={initiateGitHubLogin}>
                             <FaGithub className="button-icon" />
                             <span>Login with GitHub</span>

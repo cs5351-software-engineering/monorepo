@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
 
     const params = new URLSearchParams({
       client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
-      redirect_uri: 'http://localhost:3000/loginCallback',
+      redirect_uri: `http://localhost:3000${ROUTES.LOGIN_CALLBACK}`,
       response_type: 'code',
       scope: 'openid email profile',
       state: state,
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }) => {
       const response = await axios.post(API.GET_TOKEN, {
         code: code,
         codeVerifier: codeVerifier,
-        redirectUri: 'http://localhost:3000/LoginCallback',
+        redirect_uri: `http://localhost:3000${ROUTES.LOGIN_CALLBACK}`
       }, { withCredentials: true });
 
       if (response.status === 200) {
