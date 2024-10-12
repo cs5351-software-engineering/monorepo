@@ -73,3 +73,14 @@ pnpm start
 .\up.release.ps1
 ```
 
+## Port
+
+| Service   | Port |
+| --------- | ---- |
+| Frontend  | 3000 |
+| Backend   | 8080 |
+| Postgres  | 5432 |
+| MinIO     | 7000 (API), 7001 (Web UI) |
+| SonarQube | 9000 |
+
+
