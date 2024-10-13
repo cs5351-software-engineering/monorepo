@@ -38,19 +38,6 @@ const ProjectsPage: React.FC = () => {
       {/* Top bar */}
       <div className="ml-auto flex items-center gap-2 mb-8">
 
-        {/* Language selector */}
-        <Select>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select a language" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="any">Any</SelectItem>
-              <SelectItem value="python">Python</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-
         {/* File upload button and dialog */}
         <Dialog>
           <DialogTrigger asChild>
@@ -65,6 +52,7 @@ const ProjectsPage: React.FC = () => {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
+                {/* Project name */}
                 <Label htmlFor="name" className="text-right">
                   Project name
                 </Label>
@@ -73,6 +61,8 @@ const ProjectsPage: React.FC = () => {
                   className="col-span-3"
                 />
               </div>
+
+              {/* Description */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="description" className="text-right">
                   Description
@@ -82,9 +72,28 @@ const ProjectsPage: React.FC = () => {
                   className="col-span-3"
                 />
               </div>
+
+              {/* Language selector */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="language" className="text-right">
+                  Language
+                </Label>
+                <Select defaultValue="any">
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select a language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="any">Any</SelectItem>
+                      <SelectItem value="python">Python</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
             <DialogFooter>
-              <Button type="submit">Save changes</Button>
+              <Button type="submit">Confirm</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
