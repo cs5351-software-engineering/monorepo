@@ -33,6 +33,7 @@ pnpm dlx shadcn@latest add sheet
 pnpm dlx shadcn@latest add tooltip
 pnpm dlx shadcn@latest add select
 pnpm dlx shadcn@latest add dialog
+pnpm dlx shadcn@latest add form
 
 pnpm install @react-oauth/google@latest
 pnpm install axios
