@@ -14,9 +14,7 @@
 Create `.env` in `./backend/workspace/nestjs`
 
 ```ini
-# Oauth2
-GITHUB_CLIENT_ID=xxxxx
-GITHUB_CLIENT_SECRET=xxxxx
+# Google
 GOOGLE_CLIENT_ID=xxxxx
 GOOGLE_CLIENT_SECRET=xxxxx
 
@@ -25,14 +23,14 @@ JWT_SECRET=xxxxx
 JWT_ACCESS_EXPIRATION=1h
 JWT_REFRESH_EXPIRATION=7d
 
-# For TypeORM
+# Postgres
 DB_HOST=localhost
 DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=admin
 DB_DATABASE=code-analysis
 
-# For primas
+# Prisma
 DATABASE_URL=postgresql://postgres:admin@localhost:5432/code-analysis?schema=public
 
 # TypeORM
@@ -41,15 +39,19 @@ TYPEORM_LOGGING=true
 TYPEORM_MIGRATIONS=dist/migrations/*.js
 TYPEORM_MIGRATIONS_DIR=src/migrations
 
-#ollama
+# Ollama
 OLLAMA_ENDPOINT=http://localhost:11434/v1
 OLLAMA_MODEL=llama3.2
 
-#MINIO
+# MinIO
 MINIO_ENDPOINT=localhost
 MINIO_PORT=7000
 MINIO_ACCESSKEY=XXXXX
 MINIO_SECRETKEY=XXXXX
+
+# SonarQube
+SONARQUBE_URL=http://localhost:9000
+SONARQUBE_TOKEN=xxxxx
 ```
 
 Enter to `./backend/workspace/nestjs` folder
