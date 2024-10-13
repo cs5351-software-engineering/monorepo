@@ -40,6 +40,16 @@ TYPEORM_SYNCHRONIZE=true
 TYPEORM_LOGGING=true
 TYPEORM_MIGRATIONS=dist/migrations/*.js
 TYPEORM_MIGRATIONS_DIR=src/migrations
+
+#ollama
+OLLAMA_ENDPOINT=http://localhost:11434/v1
+OLLAMA_MODEL=llama3.2
+
+#MINIO
+MINIO_ENDPOINT=localhost
+MINIO_PORT=7000
+MINIO_ACCESSLEY=XXXXX
+MINIO_SECRETKEY=XXXXX
 ```
 
 Enter to `./backend/workspace/nestjs` folder
@@ -75,12 +85,10 @@ pnpm start
 
 ## Port
 
-| Service   | Port |
-| --------- | ---- |
-| Frontend  | 3000 |
-| Backend   | 8080 |
-| Postgres  | 5432 |
+| Service   | Port                      |
+| --------- | ------------------------- |
+| Frontend  | 3000                      |
+| Backend   | 8080                      |
+| Postgres  | 5432                      |
 | MinIO     | 7000 (API), 7001 (Web UI) |
-| SonarQube | 9000 |
-
-
+| SonarQube | 9000                      |

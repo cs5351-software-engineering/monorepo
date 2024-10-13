@@ -16,6 +16,7 @@ import { MigrationModule } from './modules/migration/migration.module';
 import { LibrarySuggestionModule } from './modules/library-suggestion/library-suggestion.module';
 import databaseConfig from './config/database.config';
 import { OllamaModule } from './modules/ollama/ollama.module';
+import { FileModule } from './modules/file/file.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { OllamaModule } from './modules/ollama/ollama.module';
     MigrationModule,
     LibrarySuggestionModule,
     OllamaModule,
+    FileModule,
   ],
 })
 export class AppModule {}
