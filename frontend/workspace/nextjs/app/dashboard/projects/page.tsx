@@ -41,6 +41,7 @@ const formSchema = z.object({
   file: z.instanceof(File),
 })
 
+// Fake projects for testing
 const fakeProjects = [
   { name: "Project Name 1", language: "Python", description: "Description 1 xxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx" },
   { name: "Project Name 2", language: "Any", description: "Description 2" },
@@ -50,6 +51,7 @@ const fakeProjects = [
 
 const ProjectsPage: React.FC = () => {
 
+  // shadcn components need to use with form which is also from shadcn
   // Reference: https://ui.shadcn.com/docs/components/form
 
   // 1. Define your form.
@@ -88,10 +90,8 @@ const ProjectsPage: React.FC = () => {
       });
 
       console.log('Upload successful:', response.data);
-      // Handle successful upload (e.g., show a success message, refresh project list)
     } catch (error) {
       console.error('Upload failed:', error);
-      // Handle error (e.g., show an error message to the user)
     }
   }
 
@@ -117,7 +117,7 @@ const ProjectsPage: React.FC = () => {
                 <DialogHeader>
                   <DialogTitle>Upload project (.zip)</DialogTitle>
                   <DialogDescription>
-                    Upload your project here. Click save when you&lsquo;re done.
+                    Upload your project here. Click confirm when you&lsquo;re done.
                   </DialogDescription>
                 </DialogHeader>
 
@@ -200,6 +200,7 @@ const ProjectsPage: React.FC = () => {
                     File
                   </Label>
 
+                  {/* Reference: https://github.com/shadcn-ui/ui/discussions/2137 */}
                   <FormField
                     control={form.control}
                     name="file"
@@ -220,20 +221,9 @@ const ProjectsPage: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  {/* <FormField
-                    control={form.control}
-                    name="file"
-                    render={({ field }) => (
-                      <FormItem className="col-span-3">
-                        <FormControl>
-                          <Input type="file" id="file" className="col-span-3" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  /> */}
                 </div>
 
+                {/* Confirm button */}
                 <DialogFooter>
                   <Button type="submit">Confirm</Button>
                 </DialogFooter>
@@ -249,16 +239,23 @@ const ProjectsPage: React.FC = () => {
       {/* Existing projects list */}
       <div className="flex flex-wrap gap-4">
         {fakeProjects.map((project) => (
-          <Card key={project.name} className="w-[300px]">
+          <Card key={project.name} className="w-[420px]">
+
+            {/* Card header, title and language */}
             <CardHeader>
               <CardTitle>{project.name}</CardTitle>
               <CardDescription>{project.language}</CardDescription>
             </CardHeader>
+
+            {/* Card content, description */}
             <CardContent className="h-[80px]">
               <p className="line-clamp-3 text-sm text-gray-400">{project.description.slice(0, 100)}...</p>
             </CardContent>
+
+            {/* Card footer, buttons */}
             <CardFooter className="flex justify-end gap-2">
               <Button size="sm" variant="outline">View</Button>
+              <Button size="sm" variant="outline">Upload new version</Button>
               <Button size="sm" variant="outline">Download</Button>
               <Button size="sm" variant="outline" className="bg-red-500 text-white hover:bg-red-600">Delete</Button>
             </CardFooter>
