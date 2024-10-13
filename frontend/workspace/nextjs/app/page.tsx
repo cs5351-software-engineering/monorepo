@@ -1,101 +1,92 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import * as React from "react"
+import { GoogleLogin } from '@react-oauth/google';
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from "react";
+import { handleGoogleLoginSuccess } from '../lib/auth/handleGoogleLoginSuccess';
+import Link from "next/link";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGithub } from '@fortawesome/free-brands-svg-icons';
+
+const IndexPage = () => {
+  const router = useRouter();
+
+  const [titleFadeIn, setTitleFadeIn] = useState(false);
+  const [descriptionFadeIn, setDescriptionFadeIn] = useState(false);
+  
+  // Fade in title and description
+  useEffect(() => {
+    setTitleFadeIn(true)
+    setTimeout(() => {
+      setDescriptionFadeIn(true);
+    }, 500);
+  }, []);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="flex h-screen">
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Left black side */}
+      <div className="w-1/2 bg-zinc-900 p-12">
+        <div >
+          <header className={`text-4xl font-bold mb-4 ${
+            titleFadeIn ? 
+            "transition-all duration-1000 translate-x-0 text-zinc-300 opacity-100" : 
+            "-translate-x-8 text-zinc-900 opacity-0"}`}>CS5351 Software Engineering</header>
+          <div className={`${
+            descriptionFadeIn ? 
+            "transition-all duration-1000 translate-x-0 text-zinc-300 opacity-100" : 
+            "-translate-x-8 text-zinc-900 opacity-0"}`}>
+            <p className="text-3xl font-bold mb-8">Codebase Analysis</p>
+            <p className="text-md">
+              Analyze the codebase of a project to find potential issues and improve the quality of the code.
+            </p>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Github Link */}
+        <Link 
+          className={`${descriptionFadeIn ? "transition-all duration-1000 opacity-100" : "opacity-0"}`} 
+          href="https://github.com/cs5351-software-engineering/monorepo" target="_blank">
+          <FontAwesomeIcon className="absolute bottom-12" icon={faGithub} style={{color: "#ffffff", fontSize: "3rem"}} />
+        </Link>
+      </div>
+
+      {/* Right white side */}
+      <div className="w-1/2 bg-white flex flex-col items-center justify-center">
+        <h2 className="text-2xl font-bold mb-8">Login with Google</h2>
+
+        {/* Google Login */}
+        <GoogleLogin onSuccess={
+          (credentialResponse) => {
+            handleGoogleLoginSuccess(credentialResponse)
+            router.push('/userinfo');
+          }
+        } onError={() => {}} />
+
+        {/* Terms and Privacy */}
+        <p className="px-8 text-center mt-8 text-sm text-muted-foreground">
+          By clicking continue, you agree to our{" "}
+            <Link
+              href="/terms"
+              className="underline underline-offset-4 hover:text-primary"
+            >
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link
+              href="/privacy"
+              className="underline underline-offset-4 hover:text-primary"
+            >
+              Privacy Policy
+            </Link>
+            .
+        </p>
+
+      </div>
+
     </div>
   );
-}
+};
+
+export default IndexPage;
