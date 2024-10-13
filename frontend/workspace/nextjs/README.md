@@ -25,6 +25,12 @@ pnpm dlx shadcn@latest add label
 pnpm dlx shadcn@latest add card
 pnpm dlx shadcn@latest add tabs
 pnpm dlx shadcn@latest add avatar
+pnpm dlx shadcn@latest add badge
+pnpm dlx shadcn@latest add breadcrumb
+pnpm dlx shadcn@latest add dropdown-menu
+pnpm dlx shadcn@latest add table
+pnpm dlx shadcn@latest add sheet
+pnpm dlx shadcn@latest add tooltip
 
 pnpm install @react-oauth/google@latest
 pnpm install axios
