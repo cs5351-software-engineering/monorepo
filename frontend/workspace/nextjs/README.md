@@ -6,7 +6,14 @@ pnpm install
 pnpm run dev
 ```
 
-## Init step
+`.env` template:
+
+```ini
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+```
+
+## Init step (for record)
 
 ```
 pnpm dlx create-next-app@latest --use-pnpm
@@ -23,6 +30,16 @@ pnpm install @react-oauth/google@latest
 pnpm install axios
 
 pnpm install jwt-decode
+```
+
+https://docs.fontawesome.com/web/use-with/react
+
+```
+pnpm install --save @fortawesome/fontawesome-svg-core
+pnpm install --save @fortawesome/free-solid-svg-icons
+pnpm install --save @fortawesome/free-regular-svg-icons
+pnpm install --save @fortawesome/free-brands-svg-icons
+pnpm install --save @fortawesome/react-fontawesome@latest
 ```
 
 ___
