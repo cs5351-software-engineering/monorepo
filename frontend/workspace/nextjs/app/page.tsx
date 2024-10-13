@@ -60,7 +60,7 @@ const IndexPage = () => {
         <GoogleLogin onSuccess={
           (credentialResponse) => {
             handleGoogleLoginSuccess(credentialResponse)
-            router.push('/userinfo');
+            router.push('/dashboard');
           }
         } onError={() => {}} />
 
