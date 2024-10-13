@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
   title: "CS5351 Software Engineering - Codebase Analysis",
@@ -15,9 +16,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        <GoogleOAuthProvider clientId={process.env.GOOGLE_CLIENT_ID!}>
-          {children}
-        </GoogleOAuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <GoogleOAuthProvider clientId={process.env.GOOGLE_CLIENT_ID!}>
+            {children}
+          </GoogleOAuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

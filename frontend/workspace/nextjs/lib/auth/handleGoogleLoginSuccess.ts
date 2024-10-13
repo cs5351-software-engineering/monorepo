@@ -12,7 +12,7 @@ export const handleGoogleLoginSuccess = async (credentialResponse: CredentialRes
   try {
     const response = await axios.post<TokenResponse>('http://localhost:8080/auth/token', {
       clientId: process.env.GOOGLE_CLIENT_ID,
-      credential: credentialResponse.credential
+      credential: credentialResponse.credential,
     });
 
     if (
@@ -27,6 +27,7 @@ export const handleGoogleLoginSuccess = async (credentialResponse: CredentialRes
       localStorage.setItem('credential', credentialResponse.credential);
 
       const credential_decoded = jwtDecode(credentialResponse.credential);
+      console.log(credential_decoded);
       localStorage.setItem('userinfo', JSON.stringify(credential_decoded));
 
       const access_token_decoded = jwtDecode(response.data.access_token);

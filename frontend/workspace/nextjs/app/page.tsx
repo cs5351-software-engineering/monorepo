@@ -54,7 +54,7 @@ const IndexPage = () => {
 
       {/* Right white side */}
       <div className="w-1/2 bg-white flex flex-col items-center justify-center">
-        <h2 className="text-2xl font-bold mb-8">Login with Google</h2>
+        <h2 className="text-2xl font-bold mb-8 text-zinc-900">Login with Google</h2>
 
         {/* Google Login */}
         <GoogleLogin onSuccess={
