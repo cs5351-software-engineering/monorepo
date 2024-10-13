@@ -51,9 +51,9 @@ interface UserInfo {
 
 // Define sidebar configuration
 const sidebarConfig = [
-  { icon: Home, label: "Dashboard", href: "/test-dashboard" },
-  { icon: Package, label: "Projects", href: "/test-dashboard/projects" },
-  { icon: LineChart, label: "Analytics", href: "/test-dashboard/analytics" },
+  { icon: Home, label: "Dashboard", href: "/dashboard" },
+  { icon: Package, label: "Projects", href: "/dashboard/projects" },
+  { icon: LineChart, label: "Analytics", href: "/dashboard/analytics" },
 ]
 
 // Define footer configuration
@@ -81,10 +81,10 @@ export default function DashboardLayout({
 
   const generateBreadcrumbs = () => {
     const pathSegments = pathname.split('/').filter(segment => segment);
-    const breadcrumbs = [{ label: 'Dashboard', href: '/test-dashboard' }];
+    const breadcrumbs = [{ label: 'Dashboard', href: '/dashboard' }];
 
     pathSegments.forEach((segment, index) => {
-      if (index > 0 || segment !== 'test-dashboard') {
+      if (index > 0 || segment !== 'dashboard') {
         const href = `/${pathSegments.slice(0, index + 1).join('/')}`;
         breadcrumbs.push({ label: segment.charAt(0).toUpperCase() + segment.slice(1), href });
       }
