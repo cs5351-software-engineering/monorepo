@@ -8,6 +8,16 @@ pnpm install
 pnpm run start:dev
 ```
 
+## Init step
+
+### File upload
+
+https://docs.nestjs.com/techniques/file-upload
+
+```bash
+pnpm add --save-dev @types/multer
+```
+
 ## Compile and run the project
 
 ```bash
