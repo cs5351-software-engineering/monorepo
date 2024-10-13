@@ -17,6 +17,8 @@ import { LibrarySuggestionModule } from './modules/library-suggestion/library-su
 import databaseConfig from './config/database.config';
 import { OllamaModule } from './modules/ollama/ollama.module';
 import { FileModule } from './modules/file/file.module';
+import { SonarqubeModule } from './modules/sonarqube/sonarqube.module';
+import { DataSource } from 'typeorm';
 
 @Module({
   imports: [
@@ -49,6 +51,9 @@ import { FileModule } from './modules/file/file.module';
     LibrarySuggestionModule,
     OllamaModule,
     FileModule,
+    SonarqubeModule,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(private dataSource: DataSource) {}
+}

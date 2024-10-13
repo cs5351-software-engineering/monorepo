@@ -18,6 +18,16 @@ https://docs.nestjs.com/techniques/file-upload
 pnpm add --save-dev @types/multer
 ```
 
+___
+
+```
+nest generate module sonarqube
+nest generate service sonarqube
+nest generate controller sonarqube
+```
+
+TypeORM: https://docs.nestjs.com/techniques/database
+
 ## Compile and run the project
 
 ```bash
