@@ -1,107 +1,121 @@
-'use client';
+"use client"
 
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Folder, Code } from "lucide-react";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { Button } from '@/components/ui/button';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
-interface Project {
-  name: string;
-  // Add other project properties as needed
-}
+const fakeProjects = [
+  { name: "Project Name 1", language: "Python", description: "Description 1 xxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx" },
+  { name: "Project Name 2", language: "Any", description: "Description 2" },
+  { name: "Project Name 3", language: "Python", description: "Description 3" },
+  { name: "Project Name 4", language: "Any", description: "Description 4" },
+]
 
-export default function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>([]);
-
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  const fetchProjects = async () => {
-    try {
-      const response = await axios.get('http://localhost:8080/project');
-      setProjects(response.data);
-    } catch (error) {
-      console.error('Error fetching projects:', error);
-    }
-  };
-
-  const handleFolderUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
-
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formData.append('files', files[i]);
-    }
-
-    try {
-      await axios.post('http://localhost:8080/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      fetchProjects(); // Refresh the project list after upload
-    } catch (error) {
-      console.error('Error uploading folder:', error);
-    }
-  };
-
+const ProjectsPage: React.FC = () => {
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-5xl font-bold mb-8 text-gray-800">Projects</h1>
-      
-      <div className="mb-8">
-        <input
-          type="file"
-          multiple
-          onChange={handleFolderUpload}
-          className="hidden"
-          id="folderUpload"
-        />
-        <Button asChild className="hover:bg-primary/90 transition-colors">
-          <label htmlFor="folderUpload">
-            <Folder className="mr-2 h-4 w-4" /> Upload Folder
-          </label>
-        </Button>
+    <div>
+      <h1 className="text-3xl font-bold mb-8">Projects</h1>
+
+      {/* Top bar */}
+      <div className="ml-auto flex items-center gap-2 mb-8">
+
+        {/* Language selector */}
+        <Select>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select a language" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="any">Any</SelectItem>
+              <SelectItem value="python">Python</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+
+        {/* File upload button and dialog */}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline">Upload project (.zip)</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Upload project (.zip)</DialogTitle>
+              <DialogDescription>
+                Upload your project here. Click save when you&lsquo;re done.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                  Project name
+                </Label>
+                <Input
+                  id="name"
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="description" className="text-right">
+                  Description
+                </Label>
+                <Input
+                  id="description"
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit">Save changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projects.map((project, index) => (
-          <Card key={index} className={cn("w-[380px]")}>
+      <h2 className="text-xl font-bold mb-8">Existing projects</h2>
+
+      {/* Existing projects list */}
+      <div className="flex flex-wrap gap-4">
+        {fakeProjects.map((project) => (
+          <Card key={project.name} className="w-[300px]">
             <CardHeader>
               <CardTitle>{project.name}</CardTitle>
-              <CardDescription>Project details</CardDescription>
+              <CardDescription>{project.language}</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="flex items-center space-x-4 rounded-md border p-4">
-                <Code />
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    Project Files
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    View and manage project files.
-                  </p>
-                </div>
-              </div>
-              {/* Add more project details here if needed */}
+            <CardContent className="h-[80px]">
+              <p className="line-clamp-3 text-sm text-gray-400">{project.description.slice(0, 100)}...</p>
             </CardContent>
-            <CardFooter>
-              <Button className="w-full">
-                Open Project
-              </Button>
+            <CardFooter className="flex justify-end gap-2">
+              <Button size="sm" variant="outline">View</Button>
+              <Button size="sm" variant="outline">Download</Button>
+              <Button size="sm" variant="outline" className="bg-red-500 text-white hover:bg-red-600">Delete</Button>
             </CardFooter>
           </Card>
         ))}
       </div>
+
     </div>
   );
-}
+};
+
+export default ProjectsPage;
+
