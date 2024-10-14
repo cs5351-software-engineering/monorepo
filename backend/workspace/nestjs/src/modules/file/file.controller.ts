@@ -10,6 +10,7 @@ import {
   ValidationPipe,
   HttpException,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { MinioService } from './minio/minio.service';
@@ -26,14 +27,76 @@ import { writeFileSync } from 'fs';
 import * as AdmZip from 'adm-zip';
 import { FileDtoSingle, FileDtoMultiple } from '../../common/dto/files.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { UserService } from '../user/user.service';
+import { AuthorizedProject } from '../authorized-project/authorized-project.entity';
+import { ProjectService } from '../project/project.service';
+import { AuthorizedProjectService } from '../authorized-project/authorized-project.service';
 
 //swagger: add to "file" tag
 @ApiTags('file')
 @Controller('file')
 export class FileController {
-  constructor(private readonly minioService: MinioService) {}
+  constructor(
+    private readonly minioService: MinioService,
+    private readonly userService: UserService,
+    private readonly projectService: ProjectService,
+    private readonly authorizedProjectService: AuthorizedProjectService,
+  ) {}
 
-  //upload single file
+  @Post('upload/project')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadProject(
+    @UploadedFile() file: Express.MulterFile,
+    @Body('email') email: string,
+    @Body('project_name') projectName: string,
+    @Body('description') description: string,
+    @Body('language') language: string,
+  ) {
+    if (!projectName || !description || !language || !email) {
+      throw new BadRequestException('All fields are required');
+    }
+    console.log('uploadProject', projectName, description, language, email);
+
+    // Find user by email
+    const user = await this.userService.getUserByEmail(email);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    // Upload the file to MinIO
+    const path = `${projectName}/0`;
+    const bucketName = `user-${user.id.toString()}`;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const minioResult = await this.minioService.uploadFile(
+      bucketName,
+      path,
+      file,
+    );
+    // console.log('Minio result:', minioResult);
+
+    // Create project
+    const repositoryURL = '';
+    const project = await this.projectService.createProject(
+      projectName,
+      description,
+      language,
+      repositoryURL,
+    );
+    // console.log(project);
+
+    // Create authorized project
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const authorizedProject =
+      await this.authorizedProjectService.createAuthorizedProject(
+        user,
+        project,
+      );
+    // console.log(authorizedProject);
+
+    return { message: 'Project uploaded successfully!' };
+  }
+
+  // Upload single file
   @Post('upload/single')
   @UseInterceptors(FileInterceptor('file'))
   async uploadSingleFile(
@@ -264,7 +327,7 @@ export class FileController {
           this.minioService
             .getObject(bucketName, obj.name)
             .then((objectStream) => {
-              let obj_name = obj.name.replace(prefix, ''); //remove folder structure that used under MinIO
+              const obj_name = obj.name.replace(prefix, ''); //remove folder structure that used under MinIO
               archive.append(objectStream, { name: obj_name });
               //archive.append(objectStream, { name: obj.name });
               filesAppended += 1;

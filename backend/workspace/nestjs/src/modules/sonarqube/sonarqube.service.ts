@@ -23,42 +23,25 @@ export class SonarqubeService {
     });
   }
 
-  async helloWorld() {
-    return 'Hello World';
-  }
-
-  async isHealth() {
-    try {
-      const response = await this.client.get('/api/system/health');
-      console.log('response:', response);
-      return response;
-    } catch (error) {
-      console.error('Error checking health:', error.message);
-      throw error;
-    }
-  }
-
   async createProject(projectKey: string, projectName: string) {
     try {
-      const url = `${this.sonarqubeUrl}/api/projects/create`;
-      const response = await axios.post(
-        url,
-        {
+      const response = await this.client.post(
+        '/api/projects/create',
+        new URLSearchParams({
           project: projectKey,
           name: projectName,
-        },
+        }),
         {
           headers: {
-            Authorization: `Bearer ${this.sonarqubeToken}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
           },
         },
       );
-      // Consider logging only in development environment
       console.log('Project created:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error creating project:', error.message);
-      throw error; // Re-throw the error for the caller to handle
+      throw error;
     }
   }
 }

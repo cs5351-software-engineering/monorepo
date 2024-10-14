@@ -17,6 +17,9 @@ export class Project {
   @Column({ name: 'ProjectName' })
   projectName: string;
 
+  @Column({ name: 'Description' })
+  description: string;
+
   @Column({ name: 'RepositoryURL' })
   repositoryURL: string;
 

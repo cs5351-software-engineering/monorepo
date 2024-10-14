@@ -3,4 +3,7 @@ export const WHITELIST_ROUTES = [
   '/auth/token',
   '/auth/refreshAccessToken',
   '/project',
+  '/file',
+  '/sonarqube',
+  '/authorized-project',
 ];

@@ -18,13 +18,23 @@ export class MinioService {
     });
   }
 
-  //save the file to MinIO
+  async createBucketIfNotExists(bucketName: string) {
+    if (!(await this.checkBucketExist(bucketName))) {
+      await this.minioClient.makeBucket(bucketName);
+      console.log(`Bucket ${bucketName} created successfully.`);
+    } else {
+      console.log(`Bucket ${bucketName} already exists.`);
+    }
+  }
+
+  // Save the file to MinIO
   async uploadFile(
-    bucket: string,
+    bucketName: string,
     location: string,
     file: Express.MulterFile,
     newfilename?: string,
   ) {
+    // filename
     let filename = '';
     if (newfilename == undefined || newfilename.trim() == '') {
       filename = path.join(location, file.originalname);
@@ -33,23 +43,26 @@ export class MinioService {
     }
     filename = UpdateFilePath(filename);
 
-    console.log(`Uploading file: ${filename} to bucket: ${bucket}`);
+    // check and create bucket
+    await this.createBucketIfNotExists(bucketName);
 
-    return await this.minioClient.putObject(bucket, filename, file.buffer);
+    console.log(`Uploading file: ${filename} to bucket: ${bucketName}`);
+    return await this.minioClient.putObject(bucketName, filename, file.buffer);
   }
 
-  //get file from MinIO
+  // Get file from MinIO
   async downloadFile(bucket: string, location: string, filename: string) {
     const filefullpath = UpdateFilePath(path.join(location, filename));
     console.log(`Downloading file: ${filefullpath} from bucket: ${bucket}`);
     return await this.getObject(bucket, filefullpath);
   }
 
-  //get object from Bucket
+  // Get object from Bucket
   async getObject(bucket, filefullpath) {
     return await this.minioClient.getObject(bucket, filefullpath);
   }
-  //check bucket exists or not, create if bucket does not exists
+
+  // Check bucket exists or not, create if bucket does not exists
   async checkAndCreateBucket(bucketName: string): Promise<void> {
     if (!this.checkBucketExist(bucketName)) {
       await this.minioClient.makeBucket(bucketName); // add your region if nessary ['us-east-1']
