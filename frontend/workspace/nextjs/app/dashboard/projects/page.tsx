@@ -73,17 +73,20 @@ const ProjectsPage: React.FC = () => {
       formData.append('project_name', values.project_name);
       formData.append('description', values.description);
       formData.append('language', values.language);
-
-      // Parameters for the file upload
-      formData.append('user_name', "test");
-      formData.append('result_type', "source_code");
-      formData.append('project_id', "1234567890");
-      formData.append('version', "1.0");
-      formData.append('fileName', values.file.name);
+      const userInfo = JSON.parse(localStorage.getItem('userinfo') || '{}');
+      formData.append('email', userInfo.email);
       formData.append('file', values.file);
 
+      // Parameters for the file upload
+      // formData.append('user_name', "test");
+      // formData.append('result_type', "source_code");
+      // formData.append('project_id', "1234567890");
+      // formData.append('version', "0.0.0");
+      // formData.append('fileName', values.file.name);
+
       // Send the form data to your API endpoint
-      const response = await axios.post('http://localhost:8080/file/upload/single', formData, {
+      // const response = await axios.post('http://localhost:8080/file/upload/single', formData, {
+      const response = await axios.post('http://localhost:8080/file/upload/project', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
