@@ -13,25 +13,31 @@ export class AuthorizedProjectService {
   ) {}
 
   // Get all authorized projects
-  getAllAuthorizedProjects(): Promise<AuthorizedProject[]> {
-    return this.authorizedProjectRepository.find();
+  async getAllAuthorizedProjects(): Promise<AuthorizedProject[]> {
+    return await this.authorizedProjectRepository.find();
   }
 
   // Create authorized project
-  createAuthorizedProject(user: User, project: Project) {
+  async createAuthorizedProject(
+    user: User,
+    project: Project,
+  ): Promise<AuthorizedProject> {
     const authorizedProject = this.authorizedProjectRepository.create({
       user: user,
       project: project,
+      createdDatetime: new Date(),
+      updatedDatetime: new Date(),
+      deletedDatetime: null,
+      version: 1,
     });
-    return this.authorizedProjectRepository.save(authorizedProject);
+    return await this.authorizedProjectRepository.save(authorizedProject);
   }
 
   // Get authorized projects by user
   async getAuthorizedProjectsByUser(user: User): Promise<AuthorizedProject[]> {
-    const authorizedProjects = await this.authorizedProjectRepository.find({
+    return this.authorizedProjectRepository.find({
       where: { user: { id: user.id } },
+      relations: ['user', 'project'],
     });
-    // console.log(authorizedProjects);
-    return authorizedProjects;
   }
 }

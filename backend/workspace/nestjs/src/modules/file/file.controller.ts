@@ -91,7 +91,7 @@ export class FileController {
         user,
         project,
       );
-    // console.log(authorizedProject);
+    console.log(authorizedProject);
 
     return { message: 'Project uploaded successfully!' };
   }

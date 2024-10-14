@@ -1,4 +1,4 @@
-import { Controller, Get, Body, BadRequestException } from '@nestjs/common';
+import { Controller, Get, BadRequestException, Query } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { AuthorizedProject } from './authorized-project.entity';
 import { AuthorizedProjectService } from './authorized-project.service';
@@ -10,9 +10,10 @@ export class AuthorizedProjectController {
     private readonly userService: UserService,
   ) {}
 
+  // Get authorized projects by user email
   @Get('list')
   async getAuthorizedProjects(
-    @Body('email') email: string,
+    @Query('email') email: string,
   ): Promise<AuthorizedProject[]> {
     if (!email) {
       throw new BadRequestException('Email is required');

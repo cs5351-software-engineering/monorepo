@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react';
+import React, { Key, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -42,14 +42,42 @@ const formSchema = z.object({
 })
 
 // Fake projects for testing
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const fakeProjects = [
-  { name: "Project Name 1", language: "Python", description: "Description 1 xxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx" },
-  { name: "Project Name 2", language: "Any", description: "Description 2" },
-  { name: "Project Name 3", language: "Python", description: "Description 3" },
-  { name: "Project Name 4", language: "Any", description: "Description 4" },
+  { project_name: "Project Name 1", language: "Python", description: "Description 1 xxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx xxxxxxxxxx" },
+  { project_name: "Project Name 2", language: "Any", description: "Description 2" },
+  { project_name: "Project Name 3", language: "Python", description: "Description 3" },
+  { project_name: "Project Name 4", language: "Any", description: "Description 4" },
 ]
 
+
 const ProjectsPage: React.FC = () => {
+
+  const [openDialog, setOpenDialog] = useState(false);
+
+  const [projects, setProjects] = useState<{
+    id: Key | null | undefined;
+    projectName: string;
+    language: string;
+    description: string;
+    version: string;
+    updatedDatetime: string;
+  }[]>([]);
+
+  const updateProjectList = async () => {
+    const userInfo = JSON.parse(localStorage.getItem('userinfo') || '{}');
+    const response = await axios.get('http://localhost:8080/project/list', {
+      params: {
+        email: userInfo.email,
+      },
+    });
+    console.log('Project list:', response.data);
+    setProjects(response.data);
+  }
+
+  useEffect(() => {
+    updateProjectList();
+  }, []);
 
   // shadcn components need to use with form which is also from shadcn
   // Reference: https://ui.shadcn.com/docs/components/form
@@ -93,6 +121,9 @@ const ProjectsPage: React.FC = () => {
       });
 
       console.log('Upload successful:', response.data);
+      updateProjectList();
+      form.reset();
+      setOpenDialog(false);
     } catch (error) {
       console.error('Upload failed:', error);
     }
@@ -106,7 +137,7 @@ const ProjectsPage: React.FC = () => {
       <div className="ml-auto flex items-center gap-2 mb-8">
 
         {/* File upload button and dialog */}
-        <Dialog>
+        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogTrigger asChild>
             <Button variant="outline">Upload project (.zip)</Button>
           </DialogTrigger>
@@ -241,26 +272,30 @@ const ProjectsPage: React.FC = () => {
 
       {/* Existing projects list */}
       <div className="flex flex-wrap gap-4">
-        {fakeProjects.map((project) => (
-          <Card key={project.name} className="w-[420px]">
+        {projects.map((project) => (
+          <Card key={project.id} className="w-[420px]">
 
             {/* Card header, title and language */}
             <CardHeader>
-              <CardTitle>{project.name}</CardTitle>
-              <CardDescription>{project.language}</CardDescription>
+              <CardTitle className="mb-2 text-lg">{project.projectName}</CardTitle>
+              <CardDescription className="mb-2 text-sm text-gray-400">
+                <p>Language: {project.language}</p>
+                <p>Version: {project.version}</p>
+                <p>Last updated: {project.updatedDatetime}</p>
+              </CardDescription>
             </CardHeader>
 
             {/* Card content, description */}
             <CardContent className="h-[80px]">
-              <p className="line-clamp-3 text-sm text-gray-400">{project.description.slice(0, 100)}...</p>
+              <p className="line-clamp-3 text-sm text-gray-400 mb-2">{project.description.slice(0, 100)}...</p>
             </CardContent>
 
             {/* Card footer, buttons */}
             <CardFooter className="flex justify-end gap-2">
-              <Button size="sm" variant="outline">View</Button>
-              <Button size="sm" variant="outline">Upload new version</Button>
-              <Button size="sm" variant="outline">Download</Button>
-              <Button size="sm" variant="outline" className="bg-red-500 text-white hover:bg-red-600">Delete</Button>
+              <Button size="sm" className='text-sm' variant="outline">View</Button>
+              <Button size="sm" className='text-sm' variant="outline">Upload</Button>
+              <Button size="sm" className='text-sm' variant="outline">Download</Button>
+              <Button size="sm" className='text-sm bg-red-500 text-white hover:bg-red-600' variant="outline">Delete</Button>
             </CardFooter>
           </Card>
         ))}

@@ -10,6 +10,10 @@ export class ProjectService {
     private readonly projectRepository: Repository<Project>,
   ) {}
 
+  async getProjectById(id: number): Promise<Project> {
+    return this.projectRepository.findOne({ where: { id } });
+  }
+
   async createProject(
     projectName: string,
     description: string,
