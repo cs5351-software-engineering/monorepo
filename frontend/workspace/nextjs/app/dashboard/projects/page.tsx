@@ -1,6 +1,6 @@
 "use client"
 
-import React, { Key, useContext, useEffect, useState } from 'react';
+import React, { Key, useContext, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -47,7 +47,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 // Context
-import { UserIdContext } from '@/app/dashboard/layout';
+import { ProjectListContext, UserIdContext } from '@/app/dashboard/layout';
 
 const formSchema = z.object({
   project_name: z.string().min(2).max(50),
@@ -67,32 +67,9 @@ const fakeProjects = [
 
 const ProjectsPage: React.FC = () => {
   const userId = useContext(UserIdContext);
+  const projects = useContext(ProjectListContext);
 
   const [openDialog, setOpenDialog] = useState(false);
-
-  const [projects, setProjects] = useState<{
-    id: Key | null | undefined;
-    projectName: string;
-    language: string;
-    description: string;
-    version: string;
-    updatedDatetime: string;
-  }[]>([]);
-
-  const updateProjectList = async () => {
-    const userInfo = JSON.parse(localStorage.getItem('userinfo') || '{}');
-    const response = await axios.get('http://localhost:8080/project/list', {
-      params: {
-        email: userInfo.email,
-      },
-    });
-    console.log('Project list:', response.data);
-    setProjects(response.data);
-  }
-
-  useEffect(() => {
-    updateProjectList();
-  }, []);
 
   // shadcn components need to use with form which is also from shadcn
   // Reference: https://ui.shadcn.com/docs/components/form
@@ -375,3 +352,7 @@ const ProjectsPage: React.FC = () => {
 };
 
 export default ProjectsPage;
+function updateProjectList() {
+  throw new Error('Function not implemented.');
+}
+
