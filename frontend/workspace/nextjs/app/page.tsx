@@ -14,7 +14,7 @@ const IndexPage = () => {
 
   const [titleFadeIn, setTitleFadeIn] = useState(false);
   const [descriptionFadeIn, setDescriptionFadeIn] = useState(false);
-  
+
   // Fade in title and description
   useEffect(() => {
     setTitleFadeIn(true)
@@ -29,14 +29,12 @@ const IndexPage = () => {
       {/* Left black side */}
       <div className="w-1/2 bg-zinc-900 p-12">
         <div >
-          <header className={`text-4xl font-bold mb-4 ${
-            titleFadeIn ? 
-            "transition-all duration-1000 translate-x-0 text-zinc-300 opacity-100" : 
-            "-translate-x-8 text-zinc-900 opacity-0"}`}>CS5351 Software Engineering</header>
-          <div className={`${
-            descriptionFadeIn ? 
-            "transition-all duration-1000 translate-x-0 text-zinc-300 opacity-100" : 
-            "-translate-x-8 text-zinc-900 opacity-0"}`}>
+          <header className={`text-4xl font-bold mb-4 ${titleFadeIn ?
+              "transition-all duration-1000 translate-x-0 text-zinc-300 opacity-100" :
+              "-translate-x-8 text-zinc-900 opacity-0"}`}>CS5351 Software Engineering</header>
+          <div className={`${descriptionFadeIn ?
+              "transition-all duration-1000 translate-x-0 text-zinc-300 opacity-100" :
+              "-translate-x-8 text-zinc-900 opacity-0"}`}>
             <p className="text-3xl font-bold mb-8">Codebase Analysis</p>
             <p className="text-md">
               Analyze the codebase of a project to find potential issues and improve the quality of the code.
@@ -45,10 +43,10 @@ const IndexPage = () => {
         </div>
 
         {/* Github Link */}
-        <Link 
-          className={`${descriptionFadeIn ? "transition-all duration-1000 opacity-100" : "opacity-0"}`} 
+        <Link
+          className={`${descriptionFadeIn ? "transition-all duration-1000 opacity-100" : "opacity-0"}`}
           href="https://github.com/cs5351-software-engineering/monorepo" target="_blank">
-          <FontAwesomeIcon className="absolute bottom-12" icon={faGithub} style={{color: "#ffffff", fontSize: "3rem"}} />
+          <FontAwesomeIcon className="absolute bottom-12" icon={faGithub} style={{ color: "#ffffff", fontSize: "3rem" }} />
         </Link>
       </div>
 
@@ -62,25 +60,19 @@ const IndexPage = () => {
             handleGoogleLoginSuccess(credentialResponse)
             router.push('/dashboard');
           }
-        } onError={() => {}} />
+        } onError={() => { }} />
 
         {/* Terms and Privacy */}
         <p className="px-8 text-center mt-8 text-sm text-muted-foreground">
           By clicking continue, you agree to our{" "}
-            <Link
-              href="/terms"
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link
-              href="/privacy"
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              Privacy Policy
-            </Link>
-            .
+          <Link href="/terms" className="underline underline-offset-4 hover:text-primary">
+            Terms of Service
+          </Link>
+          {" "}and{" "}
+          <Link href="/privacy" className="underline underline-offset-4 hover:text-primary">
+            Privacy Policy
+          </Link>
+          .
         </p>
 
       </div>

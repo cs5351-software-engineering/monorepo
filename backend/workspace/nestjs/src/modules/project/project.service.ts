@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class ProjectService {
+
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
@@ -34,5 +35,9 @@ export class ProjectService {
       deletedDatetime: null,
     });
     return this.projectRepository.save(newProject);
+  }
+
+  async deleteProject(id: number) {
+    return await this.projectRepository.delete({ id });
   }
 }

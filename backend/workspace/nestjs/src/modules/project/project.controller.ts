@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Delete, Get, Query } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { BadRequestException } from '@nestjs/common';
 import { AuthorizedProjectService } from '../authorized-project/authorized-project.service';
@@ -40,5 +40,51 @@ export class ProjectController {
     );
     console.log(projects);
     return projects;
+  }
+
+  // Delete project by project id and user id
+  @Delete('delete')
+  async deleteProject(
+    @Query('userId') userId: number,
+    @Query('projectId') projectId: number,
+  ): Promise<{ message: string }> {
+    // Check if projectId and userId are provided
+    if (!projectId || !userId) {
+      throw new BadRequestException('Project ID and user ID are required');
+    }
+
+    // Get user by id
+    const user = await this.userService.getUserById(userId);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    console.log(user);
+
+    // Get project by id
+    const project = await this.projectService.getProjectById(projectId);
+    if (!project) {
+      throw new BadRequestException('Project not found');
+    }
+    console.log(project);
+
+    // Get authorized projects by user
+    const authorizedProject =
+      await this.authorizedProjectService.getAuthorizedProjectsByUserAndProject(
+        user,
+        project,
+      );
+    console.log(authorizedProject);
+
+    // Delete all authorized projects related to this project
+    await this.authorizedProjectService.deleteAllAuthorizedProjectsForProject(
+      project,
+    );
+
+    // Delete project
+    const projectDeleteResult =
+      await this.projectService.deleteProject(projectId);
+    console.log(projectDeleteResult);
+
+    return { message: 'Project deleted successfully' };
   }
 }

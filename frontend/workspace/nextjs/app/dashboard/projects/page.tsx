@@ -1,6 +1,6 @@
 "use client"
 
-import React, { Key, useEffect, useState } from 'react';
+import React, { Key, useContext, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -32,7 +32,22 @@ import {
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import axios from 'axios'; // Make sure to install axios: npm install axios
+import axios from 'axios';
+import { Package } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
+// Context
+import { UserIdContext } from '@/app/dashboard/layout';
 
 const formSchema = z.object({
   project_name: z.string().min(2).max(50),
@@ -50,8 +65,8 @@ const fakeProjects = [
   { project_name: "Project Name 4", language: "Any", description: "Description 4" },
 ]
 
-
 const ProjectsPage: React.FC = () => {
+  const userId = useContext(UserIdContext);
 
   const [openDialog, setOpenDialog] = useState(false);
 
@@ -113,7 +128,6 @@ const ProjectsPage: React.FC = () => {
       // formData.append('fileName', values.file.name);
 
       // Send the form data to your API endpoint
-      // const response = await axios.post('http://localhost:8080/file/upload/single', formData, {
       const response = await axios.post('http://localhost:8080/file/upload/project', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -126,6 +140,34 @@ const ProjectsPage: React.FC = () => {
       setOpenDialog(false);
     } catch (error) {
       console.error('Upload failed:', error);
+    }
+  }
+
+  // Handle button clicks on existing projects card footer
+
+  // Upload project (new version)
+  const handleUploadProject = async (projectId: Key | null | undefined) => {
+    console.log('Uploading project with id:', projectId);
+  }
+
+  // Download project
+  const handleDownloadProject = async (projectId: Key | null | undefined) => {
+    console.log('Downloading project with id:', projectId);
+  }
+
+  // Delete project
+  const handleDeleteProject = async (projectId: Key | null | undefined) => {
+    console.log('Deleting project with id:', projectId);
+    try {
+      await axios.delete(`http://localhost:8080/project/delete/`, {
+        params: {
+          userId: userId,
+          projectId: projectId,
+        },
+      });
+      updateProjectList();
+    } catch (error) {
+      console.error('Delete failed:', error);
     }
   }
 
@@ -272,12 +314,20 @@ const ProjectsPage: React.FC = () => {
 
       {/* Existing projects list */}
       <div className="flex flex-wrap gap-4">
+        {projects.length === 0 && (
+          <div className="text-gray-400">No projects found</div>
+        )}
         {projects.map((project) => (
           <Card key={project.id} className="w-[420px]">
 
             {/* Card header, title and language */}
             <CardHeader>
-              <CardTitle className="mb-2 text-lg">{project.projectName}</CardTitle>
+              <CardTitle className="mb-2">
+                <div className="flex items-center gap-2">
+                  <Package className="h-6 w-6" />
+                  <div className="text-lg">{project.projectName}</div>
+                </div>
+              </CardTitle>
               <CardDescription className="mb-2 text-sm text-gray-400">
                 <p>Language: {project.language}</p>
                 <p>Version: {project.version}</p>
@@ -292,10 +342,29 @@ const ProjectsPage: React.FC = () => {
 
             {/* Card footer, buttons */}
             <CardFooter className="flex justify-end gap-2">
-              <Button size="sm" className='text-sm' variant="outline">View</Button>
-              <Button size="sm" className='text-sm' variant="outline">Upload</Button>
-              <Button size="sm" className='text-sm' variant="outline">Download</Button>
-              <Button size="sm" className='text-sm bg-red-500 text-white hover:bg-red-600' variant="outline">Delete</Button>
+              {/* <Button size="sm" className='text-sm' variant="outline">View</Button> */}
+              <Button size="sm" className='text-sm' variant="outline" onClick={() => handleUploadProject(project.id)}>Upload</Button>
+              <Button size="sm" className='text-sm' variant="outline" onClick={() => handleDownloadProject(project.id)}>Download</Button>
+
+              {/* Delete button */}
+              <AlertDialog>
+                <AlertDialogTrigger>
+                  <Button size="sm" className='text-sm bg-red-500 text-white hover:bg-red-600' variant="outline">Delete</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure delete this project?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete your project
+                      and remove your data from our servers.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction className='bg-red-500 text-white hover:bg-red-600' onClick={() => handleDeleteProject(project.id)}>Delete</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardFooter>
           </Card>
         ))}

@@ -6,4 +6,5 @@ export const WHITELIST_ROUTES = [
   '/file',
   '/sonarqube',
   '/authorized-project',
+  '/user',
 ];

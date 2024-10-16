@@ -40,4 +40,29 @@ export class AuthorizedProjectService {
       relations: ['user', 'project'],
     });
   }
+
+  // Get authorized projects by user and project
+  async getAuthorizedProjectsByUserAndProject(
+    user: User,
+    project: Project,
+  ): Promise<AuthorizedProject> {
+    return this.authorizedProjectRepository.findOne({
+      where: {
+        user: { id: user.id },
+        project: { id: project.id },
+      },
+      relations: ['user', 'project'],
+    });
+  }
+
+  // Delete authorized project
+  async deleteAuthorizedProject(
+    authorizedProject: AuthorizedProject,
+  ): Promise<void> {
+    await this.authorizedProjectRepository.delete(authorizedProject);
+  }
+
+  async deleteAllAuthorizedProjectsForProject(project: Project): Promise<void> {
+    await this.authorizedProjectRepository.delete({ project: project });
+  }
 }
