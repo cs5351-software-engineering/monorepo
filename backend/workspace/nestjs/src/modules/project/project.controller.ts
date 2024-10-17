@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Query } from '@nestjs/common';
+import { Controller, Delete, Get, Query, Param } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { BadRequestException } from '@nestjs/common';
 import { AuthorizedProjectService } from '../authorized-project/authorized-project.service';
@@ -12,6 +12,20 @@ export class ProjectController {
     private readonly authorizedProjectService: AuthorizedProjectService,
     private readonly projectService: ProjectService,
   ) {}
+
+  @Get('id/:projectId')
+  async getProjectById(
+    @Param('projectId') projectId: number,
+  ): Promise<Project> {
+    if (!projectId) {
+      throw new BadRequestException('Project ID is required');
+    }
+    const project = await this.projectService.getProjectById(projectId);
+    if (!project) {
+      throw new BadRequestException('Project not found');
+    }
+    return project;
+  }
 
   // Get projects by user email
   @Get('list')
@@ -30,7 +44,7 @@ export class ProjectController {
     // Get authorized projects by user
     const authorizedProjects =
       await this.authorizedProjectService.getAuthorizedProjectsByUser(user);
-    console.log(authorizedProjects);
+    // console.log(authorizedProjects);
     authorizedProjects.map((ele) => console.log(ele.user, ele.project));
 
     const projects = await Promise.all(
@@ -38,7 +52,7 @@ export class ProjectController {
         async (ele) => await this.projectService.getProjectById(ele.project.id),
       ),
     );
-    console.log(projects);
+    // console.log(projects);
     return projects;
   }
 
@@ -58,22 +72,23 @@ export class ProjectController {
     if (!user) {
       throw new BadRequestException('User not found');
     }
-    console.log(user);
+    // console.log(user);
 
     // Get project by id
     const project = await this.projectService.getProjectById(projectId);
     if (!project) {
       throw new BadRequestException('Project not found');
     }
-    console.log(project);
+    // console.log(project);
 
     // Get authorized projects by user
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const authorizedProject =
       await this.authorizedProjectService.getAuthorizedProjectsByUserAndProject(
         user,
         project,
       );
-    console.log(authorizedProject);
+    // console.log(authorizedProject);
 
     // Delete all authorized projects related to this project
     await this.authorizedProjectService.deleteAllAuthorizedProjectsForProject(
@@ -81,9 +96,10 @@ export class ProjectController {
     );
 
     // Delete project
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const projectDeleteResult =
       await this.projectService.deleteProject(projectId);
-    console.log(projectDeleteResult);
+    // console.log(projectDeleteResult);
 
     return { message: 'Project deleted successfully' };
   }

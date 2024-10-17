@@ -1,10 +1,10 @@
 "use client"
 
-import React, { createContext, Key, useEffect, useState } from 'react';
+import React, { createContext, useEffect, useState } from 'react';
 import Link from "next/link"
 import {
   Home,
-  LineChart,
+  // LineChart,
   Package,
   Package2,
   Search,
@@ -48,7 +48,7 @@ interface UserInfo {
 const sidebarConfig = [
   { icon: Home, label: "Dashboard", href: "/dashboard" },
   { icon: Package, label: "Projects", href: "/dashboard/projects" },
-  { icon: LineChart, label: "Analytics", href: "/dashboard/analytics" },
+  // { icon: LineChart, label: "Analytics", href: "/dashboard/analytics" },
 ]
 
 // Define footer configuration
@@ -62,13 +62,19 @@ import axios from 'axios';
 // Context
 export const UserIdContext = createContext<string | null>(null);
 export const ProjectListContext = createContext<{
-  id: Key | null | undefined;
-  projectName: string;
-  language: string;
-  description: string;
-  version: string;
-  updatedDatetime: string;
-}[]>([]);
+  projects: {
+    id: string;
+    projectName: string;
+    language: string;
+    description: string;
+    version: string;
+    updatedDatetime: string;
+  }[];
+  updateProjectList: () => void;
+}>({
+  projects: [],
+  updateProjectList: () => { }
+});
 
 export default function DashboardLayout({
   children,
@@ -76,11 +82,12 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+
+  // State
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-
   const [projects, setProjects] = useState<{
-    id: Key | null | undefined;
+    id: string;
     projectName: string;
     language: string;
     description: string;
@@ -144,7 +151,7 @@ export default function DashboardLayout({
   return (
     <TooltipProvider>
       <UserIdContext.Provider value={userId}>
-        <ProjectListContext.Provider value={projects}>
+        <ProjectListContext.Provider value={{ projects, updateProjectList }}>
 
           <div className="flex min-h-screen w-full flex-col bg-muted/40">
             <aside className="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
@@ -225,7 +232,7 @@ export default function DashboardLayout({
                   />
                 </div>
 
-                {/* User info */}
+                {/* User info, name, email, logout */}
                 {userInfo && (
                   <>
                     <div className="ml-2">{userInfo?.name}</div>

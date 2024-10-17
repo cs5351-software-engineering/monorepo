@@ -48,7 +48,9 @@ import {
 
 // Context
 import { ProjectListContext, UserIdContext } from '@/app/dashboard/layout';
+import { useRouter } from 'next/navigation';
 
+// Form schema
 const formSchema = z.object({
   project_name: z.string().min(2).max(50),
   description: z.string().min(2).max(100),
@@ -66,9 +68,15 @@ const fakeProjects = [
 ]
 
 const ProjectsPage: React.FC = () => {
-  const userId = useContext(UserIdContext);
-  const projects = useContext(ProjectListContext);
 
+  // Context
+  const userId = useContext(UserIdContext);
+  const { projects, updateProjectList } = useContext(ProjectListContext);
+
+  // Router
+  const router = useRouter();
+
+  // State
   const [openDialog, setOpenDialog] = useState(false);
 
   // shadcn components need to use with form which is also from shadcn
@@ -88,23 +96,17 @@ const ProjectsPage: React.FC = () => {
   // On dialog submit
   async function onDialogSubmit(values: z.infer<typeof formSchema>) {
     try {
+      const userInfo = JSON.parse(localStorage.getItem('userinfo') || '{}');
+
       // Create a FormData object
       const formData = new FormData();
       formData.append('project_name', values.project_name);
       formData.append('description', values.description);
       formData.append('language', values.language);
-      const userInfo = JSON.parse(localStorage.getItem('userinfo') || '{}');
       formData.append('email', userInfo.email);
       formData.append('file', values.file);
 
-      // Parameters for the file upload
-      // formData.append('user_name', "test");
-      // formData.append('result_type', "source_code");
-      // formData.append('project_id', "1234567890");
-      // formData.append('version', "0.0.0");
-      // formData.append('fileName', values.file.name);
-
-      // Send the form data to your API endpoint
+      // Upload project
       const response = await axios.post('http://localhost:8080/file/upload/project', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -319,6 +321,10 @@ const ProjectsPage: React.FC = () => {
 
             {/* Card footer, buttons */}
             <CardFooter className="flex justify-end gap-2">
+
+              {/* Detail button */}
+              <Button size="sm" className='text-sm' variant="outline" onClick={() => router.push(`/dashboard/projects/${project.id}`)}>Detail</Button>
+
               {/* <Button size="sm" className='text-sm' variant="outline">View</Button> */}
               <Button size="sm" className='text-sm' variant="outline" onClick={() => handleUploadProject(project.id)}>Upload</Button>
               <Button size="sm" className='text-sm' variant="outline" onClick={() => handleDownloadProject(project.id)}>Download</Button>
@@ -352,7 +358,4 @@ const ProjectsPage: React.FC = () => {
 };
 
 export default ProjectsPage;
-function updateProjectList() {
-  throw new Error('Function not implemented.');
-}
 
