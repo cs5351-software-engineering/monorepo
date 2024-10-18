@@ -4,10 +4,8 @@ import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
-import {
-  LineChart,
-} from "lucide-react"
+import { LineChart } from "lucide-react"
+import { Button } from '@/components/ui/button';
 
 export default function ProjectPageById({ params }: { params: { projectId: string } }) {
   console.log('projectId', params.projectId);
@@ -35,6 +33,20 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
         console.error('Error fetching project:', error);
       });
   }, [params.projectId]);
+
+  const handleStartSonarqubeAnalysis = () => {
+    const projectId = params.projectId;
+    console.log('Start Sonarqube Analysis, projectId:', projectId);
+
+    // Start Sonarqube Scanner
+    axios.post(`http://localhost:8080/sonarqube/startScanner`, { projectId })
+      .then(response => {
+        console.log('Sonarqube Analysis started', response.data);
+      })
+      .catch(error => {
+        console.error('Error starting Sonarqube Analysis:', error);
+      });
+  }
 
   return (
     <div>
@@ -76,7 +88,7 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
         <div>Analysis</div>
       </div>
 
-      {/* Tabs, make bigger */}
+      {/* Tabs */}
       <Tabs defaultValue="sonarqube" className="mb-4">
         <TabsList className="mb-2">
           <TabsTrigger value="sonarqube">Sonarqube</TabsTrigger>
@@ -84,9 +96,24 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
           <TabsTrigger value="vulnerability">Vulnerability Scanning</TabsTrigger>
           <TabsTrigger value="other">Other</TabsTrigger>
         </TabsList>
-        <TabsContent value="sonarqube">Sonarqube</TabsContent>
-        <TabsContent value="ollama">Ollama</TabsContent>
-        <TabsContent value="vulnerability">Vulnerability Scanning</TabsContent>
+        <Button size="sm" className='text-sm ml-4'>Report History</Button>
+
+        {/* Sonarqube */}
+        <TabsContent value="sonarqube">
+          <Button size="lg" onClick={handleStartSonarqubeAnalysis}>Start Sonarqube Analysis</Button>
+        </TabsContent>
+
+        {/* Ollama */}
+        <TabsContent value="ollama">
+          <Button size="lg">Start Ollama Analysis</Button>
+        </TabsContent>
+
+        {/* Vulnerability Scanning */}
+        <TabsContent value="vulnerability">
+          <Button size="lg">Start Vulnerability Scanning</Button>
+        </TabsContent>
+
+        {/* Other */}
         <TabsContent value="other">Other</TabsContent>
       </Tabs>
 

@@ -28,6 +28,36 @@ nest generate controller sonarqube
 
 TypeORM: https://docs.nestjs.com/techniques/database
 
+___
+
+```
+pnpm add decompress
+pnpm add adm-zip
+```
+
+## SonarQube Scanner
+
+https://docs.sonarsource.com/sonarqube/latest/analyzing-source-code/scanners/sonarscanner/
+
+## Minio
+
+### Structure
+
+```
+bucketName: `project-${projectId}`
+- source_code
+  - xxx.zip
+- analysis
+  - sonarqube
+    - xxx.pdf
+  - ollama
+    - xxx.pdf
+  - vulnerability-scanning
+    - xxx.pdf
+```
+
+Detail report data in database object
+
 ## Compile and run the project
 
 ```bash

@@ -28,11 +28,10 @@ import * as AdmZip from 'adm-zip';
 import { FileDtoSingle, FileDtoMultiple } from '../../common/dto/files.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { UserService } from '../user/user.service';
-import { AuthorizedProject } from '../authorized-project/authorized-project.entity';
 import { ProjectService } from '../project/project.service';
 import { AuthorizedProjectService } from '../authorized-project/authorized-project.service';
 
-//swagger: add to "file" tag
+// Swagger: add to "file" tag
 @ApiTags('file')
 @Controller('file')
 export class FileController {
@@ -43,36 +42,29 @@ export class FileController {
     private readonly authorizedProjectService: AuthorizedProjectService,
   ) {}
 
+  // Upload project
   @Post('upload/project')
   @UseInterceptors(FileInterceptor('file'))
   async uploadProject(
     @UploadedFile() file: Express.MulterFile,
-    @Body('email') email: string,
+    @Body('userId') userId: number,
     @Body('project_name') projectName: string,
     @Body('description') description: string,
     @Body('language') language: string,
   ) {
-    if (!projectName || !description || !language || !email) {
-      throw new BadRequestException('All fields are required');
+    // Check if all fields are provided
+    if (!userId || !projectName || !description || !language) {
+      throw new BadRequestException(
+        'All fields (userId, projectName, description, language) are required',
+      );
     }
-    console.log('uploadProject', projectName, description, language, email);
+    // console.log('uploadProject', projectName, description, language, userId);
 
-    // Find user by email
-    const user = await this.userService.getUserByEmail(email);
+    // Find user by id
+    const user = await this.userService.getUserById(userId);
     if (!user) {
       throw new BadRequestException('User not found');
     }
-
-    // Upload the file to MinIO
-    const path = `${projectName}/0`;
-    const bucketName = `user-${user.id.toString()}`;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const minioResult = await this.minioService.uploadFile(
-      bucketName,
-      path,
-      file,
-    );
-    // console.log('Minio result:', minioResult);
 
     // Create project
     const repositoryURL = '';
@@ -84,6 +76,11 @@ export class FileController {
     );
     // console.log(project);
 
+    // Upload the file to MinIO
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const minioResult = await this.minioService.uploadProject(project, file);
+    console.log('Minio result:', minioResult);
+
     // Create authorized project
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const authorizedProject =
@@ -91,7 +88,7 @@ export class FileController {
         user,
         project,
       );
-    console.log(authorizedProject);
+    // console.log(authorizedProject);
 
     return { message: 'Project uploaded successfully!' };
   }
@@ -108,10 +105,10 @@ export class FileController {
 
       await this.minioService.checkAndCreateBucket(user_name);
 
-      //construct folder structure
+      // Construct folder structure
       const location = GetFilePath(result_type, project_id, version);
 
-      //user_name as bucket
+      // user_name as bucket
       await this.minioService.uploadFile(user_name, location, file, fileName);
     } catch (error) {
       console.error('Error during file upload:', error.message);
@@ -271,7 +268,7 @@ export class FileController {
     }
   }
 
-  //downalod multiple file, return a zipped file to caller
+  // Downalod multiple file, return a zipped file to caller
   @Get('download/multiple')
   async downloadMinioDirectory(
     @Body(new ValidationPipe()) body: FileDtoMultiple,
@@ -287,7 +284,7 @@ export class FileController {
         zippedFileName,
       } = body;
       const zipFilePath = join(tmpdir(), `${Date.now()}-files.zip`);
-      //get MinIO file location
+      // Get MinIO file location
       const location = UpdateFilePath(
         GetFilePath(result_type, project_id, version),
       );
@@ -307,7 +304,7 @@ export class FileController {
     }
   }
 
-  //get object from Mino, zip it, and save to outPath
+  // Get object from Mino, zip it, and save to outPath
   async zipMinioDirectory(
     bucketName: string,
     prefix: string,
@@ -348,7 +345,7 @@ export class FileController {
     }
   }
 
-  //download file to server side: maybe for scan / upgrade purpose
+  // Download file to server side: maybe for scan / upgrade purpose
   @Get('download/server')
   async downloadToServer(@Body(new ValidationPipe()) body: FileDtoMultiple) {
     try {
@@ -377,7 +374,7 @@ export class FileController {
     }
   }
 
-  //download file to localFilePath
+  // Download file to localFilePath
   async downloadFileToLocal(
     bucketName: string,
     prefix: string,

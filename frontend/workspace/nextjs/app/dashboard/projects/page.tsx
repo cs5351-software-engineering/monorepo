@@ -96,14 +96,12 @@ const ProjectsPage: React.FC = () => {
   // On dialog submit
   async function onDialogSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const userInfo = JSON.parse(localStorage.getItem('userinfo') || '{}');
-
       // Create a FormData object
       const formData = new FormData();
       formData.append('project_name', values.project_name);
       formData.append('description', values.description);
       formData.append('language', values.language);
-      formData.append('email', userInfo.email);
+      formData.append('userId', userId || '');
       formData.append('file', values.file);
 
       // Upload project

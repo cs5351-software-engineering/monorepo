@@ -5,16 +5,17 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class ProjectService {
-
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
   ) {}
 
+  // Get project by id
   async getProjectById(id: number): Promise<Project> {
     return this.projectRepository.findOne({ where: { id } });
   }
 
+  // Create project
   async createProject(
     projectName: string,
     description: string,
@@ -37,6 +38,7 @@ export class ProjectService {
     return this.projectRepository.save(newProject);
   }
 
+  // Delete project
   async deleteProject(id: number) {
     return await this.projectRepository.delete({ id });
   }
