@@ -19,6 +19,7 @@ import { OllamaModule } from './modules/ollama/ollama.module';
 import { FileModule } from './modules/file/file.module';
 import { SonarqubeModule } from './modules/sonarqube/sonarqube.module';
 import { DataSource } from 'typeorm';
+import { CodeSuggestionModule } from './modules/Code-Suggestion/code-suggestion.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { DataSource } from 'typeorm';
     OllamaModule,
     FileModule,
     SonarqubeModule,
+    CodeSuggestionModule,
   ],
 })
 export class AppModule {

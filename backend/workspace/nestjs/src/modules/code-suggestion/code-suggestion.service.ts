@@ -5,10 +5,14 @@ import * as ts from 'typescript';
 import * as fs from 'fs'
 
 import { FunctionInfo, OllamaService } from '../ollama/ollama.service';
-    
+
+export interface CodeSuggestion {
+    function: string;
+    suggestion: string;
+  }
+
 @Injectable()
 export class CodeSuggestionService {
-    constructor(private readonly ollamaService: OllamaService) {}
     extractFunctionInfo(filePath: string): FunctionInfo[] {
         console.log(filePath);
         const fileContents = fs.readFileSync(filePath, 'utf8');
@@ -63,38 +67,74 @@ export class CodeSuggestionService {
         return functionsContentList
     }
 
-    async getCodeSuggestion(filePath: string): Promise<any> {
-        const functionList = CodeSuggestionService.prototype.getPythonFunctionDef(filePath);
-        console.log(functionList);
-        var codeSuggestionList: string[] = [];
-        console.log(codeSuggestionList);
-        for (let element of functionList) {
-            const suggestedCode = await this.ollamaService.callGivePythonCodeSuggestion(element, this.ollamaService.model_codellama);
-            console.log(suggestedCode['choices'][0]['text']);
-            codeSuggestionList.push(suggestedCode['choices'][0]['text']);
+    async getCodeSuggestion(ollamaService: OllamaService, filePath: string): Promise<CodeSuggestion[]> {
+        var codeReviewList: CodeSuggestion[] = [];
+        try {
+            const functionList = CodeSuggestionService.prototype.getPythonFunctionDef(filePath);
+            console.log(functionList);
+            var codeSuggestionList: string[] = [];
+            console.log(codeSuggestionList);
+            for (let element of functionList) {
+                const suggestedCode = await ollamaService.callGivePythonCodeSuggestion(element, ollamaService.model_codellama);
+                console.log(suggestedCode['choices'][0]['text']);
+                codeSuggestionList.push(suggestedCode['choices'][0]['text']);
+            }
+        } catch {
+            //do nothing: cannot provide infill function as we cannot define function name, parameter, and return type
         }
-        return codeSuggestionList;
+             
+        
+        return codeReviewList;
     }
 
-    async getCodeReview(filePath: string): Promise<any> {
-        return this.getCodeReviewOrTestCase(filePath, this.ollamaService.code_review)
+    async getCodeReview(ollamaService: OllamaService, filePath: string): Promise<CodeSuggestion[]> {
+        return this.getCodeReviewOrTestCase(ollamaService, filePath, ollamaService.code_review)
     }
 
-    async getTestCase(filePath: string): Promise<any> {
-        return this.getCodeReviewOrTestCase(filePath, this.ollamaService.testcase_suggestion)
+    async getTestCase(ollamaService: OllamaService,filePath: string): Promise<CodeSuggestion[]> {
+        return this.getCodeReviewOrTestCase(ollamaService, filePath, ollamaService.testcase_suggestion)
     }
 
-    async getCodeReviewOrTestCase(filePath: string, revewType: string) {
-        const functionContentList = CodeSuggestionService.prototype.getPythonFunctionContentList(filePath);
+    async getCodeReviewOrTestCase(ollamaService: OllamaService, filePath: string, revewType: string) {
+        let functionContentList: string[] = [];
+        try {
+            functionContentList = CodeSuggestionService.prototype.getPythonFunctionContentList(filePath);
+        } catch {
+            //cannot get content information
+            functionContentList.push(fs.readFileSync(filePath, 'utf8'))
+        }
+        
         console.log(functionContentList);
-        var codeReviewList: string[] = [];
+        var codeReviewList: CodeSuggestion[] = [];
         console.log(codeReviewList);
         for (let element of functionContentList) {
-            const suggestedCode = await this.ollamaService.callForUnitTestOrCodeReview(element, revewType);
-            console.log(suggestedCode['choices'][0]['text']);
-            codeReviewList.push(suggestedCode['choices'][0]['text']);
+            const suggestedCode = await ollamaService.callForUnitTestOrCodeReview(element, revewType);
+            const suggestion: CodeSuggestion = {
+                function: element,
+                suggestion: suggestedCode['choices'][0]['text']
+            };
+            codeReviewList.push(suggestion);
         }
         return codeReviewList;
+    }
+
+    getCodeSuggestionContent(CodeSuggestionList: CodeSuggestion[]) {
+        var content = "";
+        var i: number = 1;
+        CodeSuggestionList.forEach(element => {
+            content = content + '\r\n'
+            content = content + '*** Sugest Section ' + i.toString() + ': start ***\r\n'
+            content = content + '*** Code ***\r\n'
+            content = content + element.function + '\r\n'
+            content = content + '*** Suggestion ***\r\n'
+            content = content + element.suggestion + '\r\n'
+            content = content + '*** Sugested Section ' + i.toString() + ': end ***\r\n'
+            content = content + '**************************************************\r\n\r\n\r\n'
+            i++;
+        });
+        if (content =="")
+            content = "No Suggestion!"
+        return content;
     }
 
 }
