@@ -13,6 +13,7 @@ export class ProjectController {
     private readonly projectService: ProjectService,
   ) {}
 
+  // Get project by project id
   @Get('id/:projectId')
   async getProjectById(
     @Param('projectId') projectId: number,
