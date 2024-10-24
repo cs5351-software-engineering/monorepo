@@ -2,7 +2,6 @@ import {
   Column,
   Entity,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
   VersionColumn,
 } from 'typeorm';
@@ -10,7 +9,6 @@ import { AuthorizedProject } from '../authorized-project/authorized-project.enti
 import { ProjectVersion } from '../project-version/project-version.entity';
 import { Migration } from '../migration/migration.entity';
 import { SonarQubeAnalysisResult } from '../sonarqube/sonarqube-analysis-result.entity';
-import { OllamaAnalysisResult } from '../ollama/ollama-analysis-result.entity';
 
 @Entity('Project')
 export class Project {
@@ -77,11 +75,4 @@ export class Project {
 
   @OneToMany(() => Migration, (migration) => migration.project)
   migrations: Migration[];
-
-  // @OneToMany(
-  //   () => OllamaAnalysisResult,
-  //   (ollamaResult) => ollamaResult.project,
-  //   { cascade: true },
-  // )
-  // ollamaAnalysisResults: OllamaAnalysisResult[];
 }
