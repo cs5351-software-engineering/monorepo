@@ -1,33 +1,23 @@
 import ast
 
 
-class FunctionSplitter(ast.NodeTransformer):
-    def __init__(self):
-        self.split_functions = []
-
-    def visit_FunctionDef(self, node):
-        function_parts = []
-        for i, stmt in enumerate(node.body):
-            new_function = ast.FunctionDef(
-                name=f"{node.name}_part_{i+1}",
-                args=node.args,
-                body=[stmt],
-                decorator_list=node.decorator_list,
-                lineno=stmt.lineno,  # Set the lineno attribute
-            )
-            function_parts.append(new_function)
-        self.split_functions.extend(function_parts)
-        return None
-
-
-def split_function(file_path):
+def split_functions(file_path):
     with open(file_path, "r") as file:
-        code = file.read()
-    tree = ast.parse(code)
-    splitter = FunctionSplitter()
-    splitter.visit(tree)
-    split_code = [ast.unparse(func) for func in splitter.split_functions]
-    return split_code
+        file_content = file.read()
+
+    tree = ast.parse(file_content)
+    functions = [node for node in tree.body if isinstance(node, ast.FunctionDef)]
+
+    function_contents = {}
+    for func in functions:
+        start_line = func.lineno
+        end_line = max(
+            [node.lineno for node in ast.walk(func) if hasattr(node, "lineno")]
+        )
+        function_code = "\n".join(file_content.splitlines()[start_line - 1 : end_line])
+        function_contents[func.name] = function_code
+
+    return function_contents
 
 
 if __name__ == "__main__":
@@ -35,11 +25,13 @@ if __name__ == "__main__":
     import json
 
     file_path = sys.argv[1]
-    split_code = split_function(file_path)
-    functions = []
+    functions = split_functions(file_path)
+    result = []
     i = 0
-    for part in split_code:
+    for name, content in functions.items():
+        # print(f"Function {name}:\n{content}\n")
         attribute_name = "funct_" + str(i)
-        functions.append({attribute_name: part})
+        result.append({attribute_name: content})
         i += 1
-    print(json.dumps(functions))
+    # print(result)
+    print(json.dumps(result))
