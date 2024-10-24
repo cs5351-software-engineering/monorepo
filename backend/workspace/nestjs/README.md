@@ -30,10 +30,17 @@ TypeORM: https://docs.nestjs.com/techniques/database
 
 ___
 
+https://blog.logrocket.com/best-methods-unzipping-files-node-js/
+
 ```
-pnpm add decompress
 pnpm add adm-zip
 ```
+
+## SonarQube Service Analysis Status
+
+- `Running`
+- `Scanner Done`
+- `Completed`
 
 ## SonarQube Scanner
 

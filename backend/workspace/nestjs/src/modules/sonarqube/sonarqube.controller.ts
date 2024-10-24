@@ -1,4 +1,11 @@
-import { Controller, Post, Body, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  BadRequestException,
+  Param,
+  Get,
+} from '@nestjs/common';
 import { SonarqubeService } from './sonarqube.service';
 import { UserService } from 'src/modules/user/user.service';
 import { ProjectService } from 'src/modules/project/project.service';
@@ -13,6 +20,7 @@ export class SonarqubeController {
     private readonly minioService: MinioService,
   ) {}
 
+  // Create SonarQube project
   @Post('createProject')
   async createProject(
     @Body('projectKey') projectKey: string,
@@ -25,6 +33,7 @@ export class SonarqubeController {
     return this.sonarqubeService.createProject(projectKey, projectName);
   }
 
+  // Start scanner
   @Post('startScanner')
   async startScanner(@Body('projectId') projectId: number) {
     if (!projectId) {
@@ -57,5 +66,11 @@ export class SonarqubeController {
     this.sonarqubeService.startScanner(project, path);
 
     return 'Analysis started';
+  }
+
+  // Get analysis result
+  @Get('getAnalysisResult/:projectId')
+  async getAnalysisResult(@Param('projectId') projectId: number) {
+    return this.sonarqubeService.getAnalysisResult(projectId);
   }
 }
