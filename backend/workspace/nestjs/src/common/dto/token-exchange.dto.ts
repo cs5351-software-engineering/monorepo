@@ -1,12 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class TokenExchangeDto {
-  @ApiProperty({ description: 'Code' })
-  code: string;
+  @ApiProperty({ description: 'The new access token' })
+  clientId: string;
 
-  @ApiProperty({ description: 'Code Verifier' })
-  code_verifier: string;
-
-  @ApiProperty({ description: 'Redirect URL' })
-  redirect_uri: string;
+  @ApiProperty({ description: 'The new refresh token' })
+  credential: string;
 }
