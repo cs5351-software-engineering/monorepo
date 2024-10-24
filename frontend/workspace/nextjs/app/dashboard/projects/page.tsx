@@ -321,7 +321,7 @@ const ProjectsPage: React.FC = () => {
             <CardFooter className="flex justify-end gap-2">
 
               {/* Detail button */}
-              <Button size="sm" className='text-sm' variant="outline" onClick={() => router.push(`/dashboard/projects/${project.id}`)}>Detail</Button>
+              <Button size="sm" className='text-sm' variant="outline" onClick={() => router.push(`/dashboard/projects/${project.id}`)}>Analysis</Button>
 
               {/* <Button size="sm" className='text-sm' variant="outline">View</Button> */}
               <Button size="sm" className='text-sm' variant="outline" onClick={() => handleUploadProject(project.id)}>Upload</Button>

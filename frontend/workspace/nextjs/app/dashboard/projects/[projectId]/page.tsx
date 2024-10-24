@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { LineChart } from "lucide-react"
 import { Button } from '@/components/ui/button';
+import { Progress } from "@/components/ui/progress"
 
 export default function ProjectPageById({ params }: { params: { projectId: string } }) {
   console.log('projectId', params.projectId);
@@ -24,6 +25,13 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
     updatedDatetime: '',
   });
 
+  const [sonarQubeAnalysisProgress, setSonarQubeAnalysisProgress] = useState(0);
+  const [sonarQubeAnalysisStatus, setSonarQubeAnalysisStatus] = useState("Not Started");
+  const [sonarQubeAnalysisResult, setSonarQubeAnalysisResult] = useState({
+    stdout: "",
+    issueListJsonString: "",
+  });
+
   useEffect(() => {
     axios.get(`http://localhost:8080/project/id/${params.projectId}`)
       .then(response => {
@@ -34,18 +42,52 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
       });
   }, [params.projectId]);
 
-  const handleStartSonarqubeAnalysis = () => {
+  const handleStartSonarqubeAnalysis = async () => {
     const projectId = params.projectId;
     console.log('Start Sonarqube Analysis, projectId:', projectId);
 
+    // Set sonarQubeAnalysisStatus to "Scanning"
+    setSonarQubeAnalysisStatus("Running");
+    setSonarQubeAnalysisProgress(0);
+
     // Start Sonarqube Scanner
-    axios.post(`http://localhost:8080/sonarqube/startScanner`, { projectId })
+    await axios.post(`http://localhost:8080/sonarqube/startScanner`, { projectId })
       .then(response => {
-        console.log('Sonarqube Analysis started', response.data);
+        console.log('Sonarqube Analysis started:', response.data);
       })
       .catch(error => {
         console.error('Error starting Sonarqube Analysis:', error);
       });
+
+    setSonarQubeAnalysisProgress(30);
+
+    // Ping for status every 2 seconds until "Completed" or "Failed"
+    // backend: @Get('getAnalysisResult/:projectId')
+    const intervalId = setInterval(() => {
+      axios.get(`http://localhost:8080/sonarqube/getAnalysisResult/${projectId}`)
+        .then(response => {
+          console.log('Sonarqube Analysis result:', response.data);
+          setSonarQubeAnalysisStatus(response.data.status);
+          if (response.data.status === 'Scanner Done') {
+            setSonarQubeAnalysisProgress(60);
+          }
+          else if (response.data.status === 'Completed') {
+            setSonarQubeAnalysisProgress(100);
+            setSonarQubeAnalysisResult({
+              stdout: response.data.stdout,
+              issueListJsonString: response.data.issueListJsonString,
+            });
+            clearInterval(intervalId);
+          }
+          else if (response.data.status === 'Failed') {
+            setSonarQubeAnalysisStatus("Failed");
+            clearInterval(intervalId);
+          }
+        })
+        .catch(error => {
+          console.error('Error getting Sonarqube Analysis result:', error);
+        });
+    }, 2000);
   }
 
   return (
@@ -100,7 +142,37 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
 
         {/* Sonarqube */}
         <TabsContent value="sonarqube">
-          <Button size="lg" onClick={handleStartSonarqubeAnalysis}>Start Sonarqube Analysis</Button>
+          {sonarQubeAnalysisStatus === "Not Started" ? (
+            <Button size="lg" onClick={handleStartSonarqubeAnalysis}>Start Sonarqube Analysis</Button>
+          ) : sonarQubeAnalysisStatus === "Running" ? (
+            <>
+              <Progress value={sonarQubeAnalysisProgress} className="w-[100%]" />
+              <div className="text-sm mt-2">Scanning by SonarQube Scanner ...</div>
+            </>
+          ) : sonarQubeAnalysisStatus === "Scanner Done" ? (
+            <>
+              <Progress value={sonarQubeAnalysisProgress} className="w-[100%]" />
+              <div className="text-sm mt-2">Scanner Done, waiting for SonarQube server analysis result ...</div>
+            </>
+          ) : sonarQubeAnalysisStatus === "Completed" ? (
+            <>
+              <div className="text-lg font-bold mb-2">Sonarqube Analysis Result</div>
+              <div>
+                <div className='text-lg font-bold mb-2'>issueListJsonString</div>
+                <div className='text-sm whitespace-pre-wrap break-all'>
+                  {JSON.stringify(JSON.parse(sonarQubeAnalysisResult.issueListJsonString), null, 2)}
+                </div>
+                <div className='text-lg font-bold mb-2'>stdout</div>
+                <div className='text-sm whitespace-pre-wrap break-all'>
+                  {sonarQubeAnalysisResult.stdout}
+                </div>
+              </div>
+            </>
+          ) : sonarQubeAnalysisStatus === "Failed" ? (
+            <div>Failed</div>
+          ) : (
+            <div>Unknown</div>
+          )}
         </TabsContent>
 
         {/* Ollama */}
