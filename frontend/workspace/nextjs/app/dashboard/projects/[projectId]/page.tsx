@@ -30,6 +30,7 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
   const [sonarQubeAnalysisResult, setSonarQubeAnalysisResult] = useState({
     stdout: "",
     issueListJsonString: "",
+    filteredIssueListJsonString: "",
   });
 
   useEffect(() => {
@@ -61,7 +62,7 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
 
     setSonarQubeAnalysisProgress(30);
 
-    // Ping for status every 2 seconds until "Completed" or "Failed"
+    // Ping for status every 1 seconds until "Completed" or "Failed"
     // backend: @Get('getAnalysisResult/:projectId')
     const intervalId = setInterval(() => {
       axios.get(`http://localhost:8080/sonarqube/getAnalysisResult/${projectId}`)
@@ -76,6 +77,7 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
             setSonarQubeAnalysisResult({
               stdout: response.data.stdout,
               issueListJsonString: response.data.issueListJsonString,
+              filteredIssueListJsonString: response.data.filteredIssueListJsonString,
             });
             clearInterval(intervalId);
           }
@@ -86,8 +88,10 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
         })
         .catch(error => {
           console.error('Error getting Sonarqube Analysis result:', error);
+          setSonarQubeAnalysisStatus("Failed");
+          clearInterval(intervalId);
         });
-    }, 2000);
+    }, 1000);
   }
 
   return (
@@ -158,10 +162,20 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
             <>
               <div className="text-lg font-bold mb-2">Sonarqube Analysis Result</div>
               <div>
+
+                {/* filteredIssueListJsonString */}
+                <div className='text-lg font-bold mb-2'>filteredIssueListJsonString</div>
+                <div className='text-sm whitespace-pre-wrap break-all'>
+                  {JSON.stringify(JSON.parse(sonarQubeAnalysisResult.filteredIssueListJsonString), null, 2)}
+                </div>
+
+                {/* issueListJsonString */}
                 <div className='text-lg font-bold mb-2'>issueListJsonString</div>
                 <div className='text-sm whitespace-pre-wrap break-all'>
                   {JSON.stringify(JSON.parse(sonarQubeAnalysisResult.issueListJsonString), null, 2)}
                 </div>
+
+                {/* stdout */} 
                 <div className='text-lg font-bold mb-2'>stdout</div>
                 <div className='text-sm whitespace-pre-wrap break-all'>
                   {sonarQubeAnalysisResult.stdout}

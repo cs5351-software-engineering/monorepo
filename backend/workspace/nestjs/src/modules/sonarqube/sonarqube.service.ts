@@ -24,12 +24,15 @@ export class SonarqubeService {
     this.sonarqubeToken = process.env.SONARQUBE_TOKEN;
     this.sonarScannerPath = process.env.SONAR_SCANNER_PATH;
 
+    // If any undefined environment variable, throw error
+    if (!this.sonarqubeUrl) {
+      throw new Error('SONARQUBE_URL must be defined');
+    }
+    if (!this.sonarqubeToken) {
+      throw new Error('SONARQUBE_TOKEN must be defined');
+    }
     if (!this.sonarScannerPath) {
       throw new Error('SONAR_SCANNER_PATH must be defined');
-    }
-
-    if (!this.sonarqubeUrl || !this.sonarqubeToken) {
-      throw new Error('SONARQUBE_URL and SONARQUBE_TOKEN must be defined');
     }
 
     this.logger.debug(
@@ -120,31 +123,29 @@ export class SonarqubeService {
           }
 
           // Update analysis result to database
-          const scannerDoneAnalysisResult = new SonarQubeAnalysisResult();
-          scannerDoneAnalysisResult.status = 'Scanner Done';
-          scannerDoneAnalysisResult.stdout = stdout;
-          await this.sonarQubeAnalysisResultRepository.save(
-            scannerDoneAnalysisResult,
-          );
+          const scannerDoneResult = new SonarQubeAnalysisResult();
+          scannerDoneResult.status = 'Scanner Done';
+          scannerDoneResult.stdout = stdout;
+          await this.sonarQubeAnalysisResultRepository.save(scannerDoneResult);
           await this.projectRepository.update(projectId, {
-            sonarQubeAnalysisResult: scannerDoneAnalysisResult,
+            sonarQubeAnalysisResult: scannerDoneResult,
           });
 
           // Request analysis result from sonarqube
-          const sonarqubeResponse = await this.requestAnalysisResult(projectId);
-          console.log('Sonarqube response:', sonarqubeResponse);
+          const sonarQubeResponse = await this.requestAnalysisResult(projectId);
+          // console.log('Sonarqube response:', sonarqubeResponse);
 
           // Update analysis result to database
-          const completedAnalysisResult = new SonarQubeAnalysisResult();
-          completedAnalysisResult.status = 'Completed';
-          completedAnalysisResult.stdout = stdout;
-          completedAnalysisResult.issueListJsonString =
-            sonarqubeResponse.issueListJsonString;
-          await this.sonarQubeAnalysisResultRepository.save(
-            completedAnalysisResult,
-          );
+          const completedResult = new SonarQubeAnalysisResult();
+          completedResult.status = 'Completed';
+          completedResult.stdout = stdout;
+          completedResult.issueListJsonString =
+            sonarQubeResponse.issueListJsonString;
+          completedResult.filteredIssueListJsonString =
+            sonarQubeResponse.filteredIssueListJsonString;
+          await this.sonarQubeAnalysisResultRepository.save(completedResult);
           await this.projectRepository.update(projectId, {
-            sonarQubeAnalysisResult: completedAnalysisResult,
+            sonarQubeAnalysisResult: completedResult,
           });
         },
       );
@@ -154,11 +155,11 @@ export class SonarqubeService {
     }
 
     // Save analysis result to project
-    const runningAnalysisResult = new SonarQubeAnalysisResult();
-    runningAnalysisResult.status = 'Running';
-    await this.sonarQubeAnalysisResultRepository.save(runningAnalysisResult);
+    const runningResult = new SonarQubeAnalysisResult();
+    runningResult.status = 'Running';
+    await this.sonarQubeAnalysisResultRepository.save(runningResult);
     await this.projectRepository.update(projectId, {
-      sonarQubeAnalysisResult: runningAnalysisResult,
+      sonarQubeAnalysisResult: runningResult,
     });
 
     return 'Analysis started';
@@ -187,9 +188,31 @@ export class SonarqubeService {
     const issueListResponse = await this.client.get(
       `/api/issues/list?project=${projectKey}`,
     );
-    const issueListJsonString = JSON.stringify(issueListResponse.data);
-    console.log('Analysis result:', issueListJsonString);
+    const issueListJson = issueListResponse.data;
 
-    return { issueListJsonString };
+    const issueList = issueListJson.issues;
+    console.log('Analysis result:', issueList[0]);
+    console.log('keys:', Object.keys(issueList[0]));
+
+    const filteredIssueList = issueList.map(
+      ({ key, rule, component, message, severity, type, line, textRange }) => {
+        return {
+          key,
+          rule,
+          component,
+          message,
+          severity,
+          type,
+          line,
+          textRange,
+        };
+      },
+    );
+    console.log('Filtered issue list:', filteredIssueList);
+
+    const issueListJsonString = JSON.stringify(issueListJson);
+    const filteredIssueListJsonString = JSON.stringify(filteredIssueList);
+
+    return { issueListJsonString, filteredIssueListJsonString };
   }
 }

@@ -20,6 +20,9 @@ export class SonarQubeAnalysisResult {
   @Column({ name: 'IssueListJsonString', type: 'text', nullable: true })
   issueListJsonString: string | null;
 
+  @Column({ name: 'FilteredIssueListJsonString', type: 'text', nullable: true })
+  filteredIssueListJsonString: string | null;
+
   @CreateDateColumn({ name: 'CreatedDatetime' })
   createdDatetime: Date;
 
