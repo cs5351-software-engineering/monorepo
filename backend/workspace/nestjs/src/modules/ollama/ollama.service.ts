@@ -40,7 +40,7 @@ export class OllamaService {
       prompt = this.constructCodeReviewPrompt(code)
     }
     else {
-      prompt = this.constructCodeReviewPrompt(code)
+      prompt = this.constructUnitTestPrompt(code)
     }
     console.log(prompt);
     const response = await this.httpService
