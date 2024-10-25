@@ -5,6 +5,8 @@ import { SonarQubeAnalysisResult } from './sonarqube-analysis-result.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { exec } from 'child_process';
+import * as fs from 'fs';
+import { OllamaService } from '../ollama/ollama.service';
 
 @Injectable()
 export class SonarqubeService {
@@ -19,6 +21,7 @@ export class SonarqubeService {
     private projectRepository: Repository<Project>,
     @InjectRepository(SonarQubeAnalysisResult)
     private sonarQubeAnalysisResultRepository: Repository<SonarQubeAnalysisResult>,
+    private ollamaService: OllamaService,
   ) {
     this.sonarqubeUrl = process.env.SONARQUBE_URL;
     this.sonarqubeToken = process.env.SONARQUBE_TOKEN;
@@ -125,7 +128,6 @@ export class SonarqubeService {
           // Update analysis result to database
           const scannerDoneResult = new SonarQubeAnalysisResult();
           scannerDoneResult.status = 'Scanner Done';
-          scannerDoneResult.stdout = stdout;
           await this.sonarQubeAnalysisResultRepository.save(scannerDoneResult);
           await this.projectRepository.update(projectId, {
             sonarQubeAnalysisResult: scannerDoneResult,
@@ -135,6 +137,35 @@ export class SonarqubeService {
           const sonarQubeResponse = await this.requestAnalysisResult(projectId);
           // console.log('Sonarqube response:', sonarqubeResponse);
 
+          // Process issue object
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          //  {
+          //   [filePath: string]: {
+          //     key: string,
+          //     rule: string,
+          //     severity: string,
+          //     message: string,
+          //     codeBlock: string[],
+          //     textRange: { startLine: number; endLine: number },
+          //   }[]
+          // }
+          const processedIssueObject = await this.processIssueList(
+            sonarQubeResponse.filteredIssueListJsonString,
+            path,
+          );
+          console.log('Processed issue object:', processedIssueObject);
+          const processedIssueObjectJsonString =
+            JSON.stringify(processedIssueObject);
+          console.log(
+            'Processed issue object json string:',
+            processedIssueObjectJsonString,
+          );
+
+          // Analyze by Ollama
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          // const analyzedIssueList =
+          //   await this.analyzeByOllama(processedIssueObject);
+
           // Update analysis result to database
           const completedResult = new SonarQubeAnalysisResult();
           completedResult.status = 'Completed';
@@ -143,6 +174,8 @@ export class SonarqubeService {
             sonarQubeResponse.issueListJsonString;
           completedResult.filteredIssueListJsonString =
             sonarQubeResponse.filteredIssueListJsonString;
+          completedResult.processedIssueObjectJsonString =
+            processedIssueObjectJsonString;
           await this.sonarQubeAnalysisResultRepository.save(completedResult);
           await this.projectRepository.update(projectId, {
             sonarQubeAnalysisResult: completedResult,
@@ -194,8 +227,10 @@ export class SonarqubeService {
     console.log('Analysis result:', issueList[0]);
     console.log('keys:', Object.keys(issueList[0]));
 
+    // Filter issue list
+    // Don't need line, because textRange has startLine and endLine
     const filteredIssueList = issueList.map(
-      ({ key, rule, component, message, severity, type, line, textRange }) => {
+      ({ key, rule, component, message, severity, type, textRange }) => {
         return {
           key,
           rule,
@@ -203,7 +238,6 @@ export class SonarqubeService {
           message,
           severity,
           type,
-          line,
           textRange,
         };
       },
@@ -214,5 +248,67 @@ export class SonarqubeService {
     const filteredIssueListJsonString = JSON.stringify(filteredIssueList);
 
     return { issueListJsonString, filteredIssueListJsonString };
+  }
+
+  // Process issue list
+  async processIssueList(issueListJsonString: string, basePath: string) {
+    const issueList: {
+      component: string;
+      textRange: { startLine: number; endLine: number };
+    }[] = JSON.parse(issueListJsonString);
+    if (issueList.length === 0) {
+      return [];
+    }
+    console.log('Processed issue list:', issueList[0], 'basePath:', basePath);
+
+    // Add filePath to issue list
+    const addFilePathList = issueList.map((issue) => {
+      return {
+        ...issue,
+        filePath: issue.component.split(':')[1],
+      };
+    });
+    console.log('Add filePath list:', addFilePathList);
+
+    // Group by filePath
+    // Object.groupBy is not supported
+    const groupedList = addFilePathList.reduce((acc, issue) => {
+      acc[issue.filePath] = acc[issue.filePath] || [];
+      acc[issue.filePath].push(issue);
+      return acc;
+    }, {});
+    console.log('Grouped list:', groupedList);
+
+    // Get code context
+    // { filePath: [line1, line2, ...] }
+    const codeContexts = {};
+    Object.keys(groupedList).forEach((filePath) => {
+      const fileContent = fs.readFileSync(`${basePath}/${filePath}`, 'utf8');
+      const lines = fileContent.split('\n');
+      codeContexts[filePath] = lines;
+    });
+    console.log('Code contexts:', codeContexts);
+
+    // Get code block (startLine - 5, endLine + 5) of each issue
+    // and add to groupedList
+    Object.keys(groupedList).forEach((filePath) => {
+      const lines = codeContexts[filePath];
+      groupedList[filePath].forEach((issue) => {
+        let { startLine, endLine } = issue.textRange;
+        startLine = startLine - 5 < 0 ? 0 : startLine - 5;
+        endLine = endLine + 5 > lines.length ? lines.length : endLine + 5;
+        const codeBlock = lines.slice(startLine, endLine);
+        issue.codeBlock = codeBlock;
+      });
+    });
+    console.log('Add code blocks on groupedList:', groupedList);
+
+    return groupedList;
+  }
+
+  // Analyze by Ollama
+  async analyzeByOllama(issueDict: object) {
+    // TODO: Analyze by Ollama
+    return [];
   }
 }
