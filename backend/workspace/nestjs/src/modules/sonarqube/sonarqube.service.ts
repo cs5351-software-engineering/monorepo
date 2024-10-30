@@ -133,6 +133,10 @@ export class SonarqubeService {
             sonarQubeAnalysisResult: scannerDoneResult,
           });
 
+          // Just wait for 2 seconds, it is shit
+          // Normally should use some way to confirm sonarqube project analysis is done after scanner cli is done
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
           // Request analysis result from sonarqube
           const sonarQubeResponse = await this.requestAnalysisResult(projectId);
           // console.log('Sonarqube response:', sonarqubeResponse);
@@ -222,6 +226,7 @@ export class SonarqubeService {
       `/api/issues/list?project=${projectKey}`,
     );
     const issueListJson = issueListResponse.data;
+    console.log('Issue list json:', issueListJson);
 
     const issueList = issueListJson.issues;
     console.log('Analysis result:', issueList[0]);
@@ -297,7 +302,10 @@ export class SonarqubeService {
         let { startLine, endLine } = issue.textRange;
         startLine = startLine - 5 < 0 ? 0 : startLine - 5;
         endLine = endLine + 5 > lines.length ? lines.length : endLine + 5;
-        const codeBlock = lines.slice(startLine, endLine);
+        let codeBlock = lines.slice(startLine, endLine);
+        codeBlock = codeBlock.map((line, index) => {
+          return { lineNumber: startLine + index + 1, line: line };
+        });
         issue.codeBlock = codeBlock;
       });
     });
