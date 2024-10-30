@@ -36,6 +36,7 @@ pnpm dlx shadcn@latest add dialog
 pnpm dlx shadcn@latest add form
 pnpm dlx shadcn@latest add alert-dialog
 pnpm dlx shadcn@latest add progress
+pnpm dlx shadcn@latest add accordion
 
 pnpm install @react-oauth/google@latest
 pnpm install axios
