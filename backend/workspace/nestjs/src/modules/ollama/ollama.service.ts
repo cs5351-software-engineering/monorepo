@@ -13,13 +13,13 @@ export interface FunctionInfo {
 export class OllamaService {
   private readonly ollamaUrl = process.env.OLLAMA_ENDPOINT; //http://localhost:11434/v1
 
-  public readonly model_qwen: string = "qwen2.5-coder"
-  public readonly model_codellamaInfill: string = "codellama:7b-code"
+  public readonly model_qwen: string = 'qwen2.5-coder';
+  public readonly model_codellamaInfill: string = 'codellama:7b-code';
   //for testcase or code review: bug suggestion
-  public readonly model_codellama: string = "codellama"
-  
-  public readonly code_review: string ="code_review"
-  public readonly testcase_suggestion: string ="testcase_suggestion"
+  public readonly model_codellama: string = 'codellama';
+
+  public readonly code_review: string = 'code_review';
+  public readonly testcase_suggestion: string = 'testcase_suggestion';
 
   constructor(private readonly httpService: HttpService) {}
 
@@ -34,13 +34,15 @@ export class OllamaService {
   }
 
   //to for unit test or code review
-  async callForUnitTestOrCodeReview(code: string, reviewType: string ): Promise<any> {
-    var prompt = ''
+  async callForUnitTestOrCodeReview(
+    code: string,
+    reviewType: string,
+  ): Promise<any> {
+    let prompt = '';
     if (reviewType == this.code_review) {
-      prompt = this.constructCodeReviewPrompt(code)
-    }
-    else {
-      prompt = this.constructUnitTestPrompt(code)
+      prompt = this.constructCodeReviewPrompt(code);
+    } else {
+      prompt = this.constructUnitTestPrompt(code);
     }
     console.log(prompt);
     const response = await this.httpService
@@ -52,35 +54,38 @@ export class OllamaService {
     return response.data;
   }
 
-  async callGivePythonCodeSuggestion(FunctionInfo: FunctionInfo, SelectModule: string): Promise<any> {
-    const prompt = this.constructPythonInfillPrompt(FunctionInfo, SelectModule)
-    console.log(prompt)
-    return this.callForCodeInfill(prompt, SelectModule)
+  async callGivePythonCodeSuggestion(
+    FunctionInfo: FunctionInfo,
+    SelectModule: string,
+  ): Promise<any> {
+    const prompt = this.constructPythonInfillPrompt(FunctionInfo, SelectModule);
+    console.log(prompt);
+    return this.callForCodeInfill(prompt, SelectModule);
   }
 
   constructCodeReviewPrompt(code: string): string {
-    return "Where is the bug in this code? \r\n\r\n " + code
+    return 'Where is the bug in this code? \r\n\r\n ' + code;
   }
 
   constructUnitTestPrompt(code: string): string {
-    return "write a unit test for this function: " + code
+    return 'write a unit test for this function: ' + code;
   }
 
-
-  constructPythonInfillPrompt(FunctionInfo: FunctionInfo, SelectModule: string): any {
-    var result =''
-    if (SelectModule == this.model_qwen)
-    {
+  constructPythonInfillPrompt(
+    FunctionInfo: FunctionInfo,
+    SelectModule: string,
+  ): any {
+    let result = '';
+    if (SelectModule == this.model_qwen) {
       //pending to implement
-    }
-    else{
+    } else {
       result = '<PRE> def ' + FunctionInfo['name'];
       result = result + '(' + FunctionInfo['parameters'] + '):' + '<SUF> ';
-      
-      if (FunctionInfo['returnType'] != null)
-          result = result + 'return ' + FunctionInfo['returnType'];
 
-      result = result + ' <MID>'
+      if (FunctionInfo['returnType'] != null)
+        result = result + 'return ' + FunctionInfo['returnType'];
+
+      result = result + ' <MID>';
     }
     return result;
   }
@@ -88,11 +93,9 @@ export class OllamaService {
   //for model to perform Code Infill
   async callForCodeInfill(prompt: string, SelectModule: string): Promise<any> {
     let model = '';
-    if (SelectModule == this.model_qwen)
-      model = this.model_qwen 
-    else
-      model = this.model_codellamaInfill
-    console.log(model)
+    if (SelectModule == this.model_qwen) model = this.model_qwen;
+    else model = this.model_codellamaInfill;
+    console.log(model);
     const response = await this.httpService
       .post(`${this.ollamaUrl}/completions`, {
         model: model, //'llama3.2',//'codellama',

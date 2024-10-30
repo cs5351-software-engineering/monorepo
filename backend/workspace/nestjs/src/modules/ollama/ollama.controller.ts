@@ -11,8 +11,8 @@ export class OllamaController {
   @HttpCode(HttpStatus.OK)
   @Post('call')
   async callLlama(@Body('prompt') prompt: string) {
-    var result = await this.ollamaService.callLlama(prompt);
-    var choices = result['choices'];
+    const result = await this.ollamaService.callLlama(prompt);
+    const choices = result['choices'];
     console.log(choices[0]['text']);
     return result;
   }
@@ -26,7 +26,10 @@ export class OllamaController {
   @HttpCode(HttpStatus.OK)
   @Post('callForUnitTestOrCodeReview')
   async callForUnitTestOrCodeReview(@Body('prompt') prompt: string) {
-    return this.ollamaService.callForUnitTestOrCodeReview(prompt, "code_review");
+    return this.ollamaService.callForUnitTestOrCodeReview(
+      prompt,
+      'code_review',
+    );
   }
 
   @HttpCode(HttpStatus.OK)
@@ -34,5 +37,4 @@ export class OllamaController {
   async callForCodeInfill(@Body('prompt') prompt: string) {
     return this.ollamaService.callForCodeInfill(prompt, 'codeLlama');
   }
-  
 }
