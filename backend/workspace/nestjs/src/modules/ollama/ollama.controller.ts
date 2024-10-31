@@ -9,7 +9,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { OllamaService } from './ollama.service';
+import { Model, OllamaService, ReviewType } from './ollama.service';
 
 //swagger: add to "auth" tag
 @ApiTags('ollama')
@@ -42,7 +42,10 @@ export class OllamaController {
   @HttpCode(HttpStatus.OK)
   @Post('callCodeQwen')
   async callForCodeQwen(@Body('prompt') prompt: string) {
-    return this.ollamaService.callForCodeInfill(prompt, 'qwen');
+    return this.ollamaService.callForCodeInfill(
+      prompt,
+      Model.qwen2_5_coder_7b_instruct,
+    );
   }
 
   @HttpCode(HttpStatus.OK)
@@ -50,13 +53,16 @@ export class OllamaController {
   async callForUnitTestOrCodeReview(@Body('prompt') prompt: string) {
     return this.ollamaService.callForUnitTestOrCodeReview(
       prompt,
-      'code_review',
+      ReviewType.code_review,
     );
   }
 
   @HttpCode(HttpStatus.OK)
   @Post('callCode7bcode')
   async callForCodeInfill(@Body('prompt') prompt: string) {
-    return this.ollamaService.callForCodeInfill(prompt, 'codeLlama');
+    return this.ollamaService.callForCodeInfill(
+      prompt,
+      Model.codellama_7b_code,
+    );
   }
 }
