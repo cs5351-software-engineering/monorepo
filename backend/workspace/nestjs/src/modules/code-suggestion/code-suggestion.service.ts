@@ -108,7 +108,7 @@ export class CodeSuggestionService {
           const suggestedCode =
             await ollamaService.callGivePythonCodeSuggestion(
               element,
-              ollamaService.model_codellama,
+              Model.codellama_7b_code,
             );
           const suggestion: CodeSuggestion = {
             function: element,
