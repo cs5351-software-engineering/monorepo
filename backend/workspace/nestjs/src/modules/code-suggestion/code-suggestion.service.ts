@@ -24,6 +24,8 @@ export interface CodeSuggestion {
 
 @Injectable()
 export class CodeSuggestionService {
+  constructor(private readonly ollamaService: OllamaService) {}
+
   extractFunctionInfo(filePath: string): FunctionInfo[] {
     console.log(filePath);
     const fileContents = fs.readFileSync(filePath, 'utf8');
@@ -268,9 +270,9 @@ export class CodeSuggestionService {
     return content;
   }
 
-  async startCodeReview(ollamaService: OllamaService, path: string) {
+  async startCodeReview(path: string) {
     const fileSuggestionList: FileSuggestion[] = await this.getCodeReview(
-      ollamaService,
+      this.ollamaService,
       path,
     );
 
@@ -290,9 +292,9 @@ export class CodeSuggestionService {
     return fileSuggestionList;
   }
 
-  async startGetTestCase(ollamaService: OllamaService, path: string) {
+  async startGetTestCase(path: string) {
     const fileSuggestionList: FileSuggestion[] = await this.getTestCase(
-      ollamaService,
+      this.ollamaService,
       path,
     );
     for (const fileSuggestion of fileSuggestionList) {
@@ -311,9 +313,9 @@ export class CodeSuggestionService {
     return fileSuggestionList;
   }
 
-  async startCodeInfill(ollamaService: OllamaService, path: string) {
+  async startCodeInfill(path: string) {
     const fileSuggestionList: FileSuggestion[] = await this.getCodeSuggestion(
-      ollamaService,
+      this.ollamaService,
       path,
     );
     for (const fileSuggestion of fileSuggestionList) {
