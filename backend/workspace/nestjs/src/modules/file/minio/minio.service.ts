@@ -125,18 +125,19 @@ export class MinioService {
 
   // Download codebase to temp folder
   async downloadCodebaseToTemp(project: Project) {
-    console.log('Download codebase to temp');
+    // console.log('Download codebase to temp');
 
     const projectId = project.id;
     const bucketName = `project-${projectId}`;
     const fileName = `source_code.zip`;
 
     // Create temp folder
-    const tempFolder = `${tmpdir()}/project-${projectId}`;
+    const randomString = Math.random().toString(36).substring(2, 15);
+    const tempFolder = `${tmpdir()}/${randomString}/project-${projectId}`;
     if (!fs.existsSync(tempFolder)) {
       fs.mkdirSync(tempFolder, { recursive: true });
     }
-    console.log('tempFolder:', tempFolder);
+    // console.log('tempFolder:', tempFolder);
 
     // Download file from MinIO
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -150,7 +151,7 @@ export class MinioService {
     // Unzip the file by adm-zip
     // I try decompress, but it's not work
     // https://blog.logrocket.com/best-methods-unzipping-files-node-js/
-    const unzipFolder = `${tmpdir()}/project-${projectId}/source_code`;
+    const unzipFolder = `${tempFolder}/source_code`;
     if (!fs.existsSync(unzipFolder)) {
       fs.mkdirSync(unzipFolder, { recursive: true });
     }

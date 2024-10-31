@@ -19,26 +19,29 @@ import axios, { AxiosInstance } from 'axios';
 export interface FunctionInfo {
   name: string;
   parameters: string[];
+  body: string;
   returnType: string | null;
+}
+
+export enum Model {
+  llama3_2_3b = 'llama3.2:3b',
+  codellama_7b_code = 'codellama:7b-code',
+  qwen2_5_coder_7b_instruct = 'qwen2.5-coder:7b-instruct',
+  qwen2_5_coder_1_5b_instruct = 'qwen2.5-coder:1.5b-instruct',
+}
+
+export enum ReviewType {
+  code_review = 'code_review',
+  testcase_suggestion = 'testcase_suggestion',
 }
 
 @Injectable()
 export class OllamaService {
   private ollamaUrl: string;
-  private ollamaModel: string;
+  private ollamaModel: Model;
   client: AxiosInstance;
 
   private readonly logger = new Logger(OllamaService.name);
-
-  public readonly model_qwen: string = 'qwen2.5-coder';
-  public readonly model_codellamaInfill: string = 'codellama:7b-code';
-
-  // For testcase or code review: bug suggestion
-  public readonly model_codellama: string = 'codellama';
-
-  // Enum
-  public readonly code_review: string = 'code_review';
-  public readonly testcase_suggestion: string = 'testcase_suggestion';
 
   constructor(private readonly httpService: HttpService) {
     // Check if the environment variables are set
@@ -49,8 +52,9 @@ export class OllamaService {
       throw new Error('OLLAMA_MODEL is not set');
     }
 
+    // Initialize the Ollama URL and model
     this.ollamaUrl = process.env.OLLAMA_ENDPOINT;
-    this.ollamaModel = process.env.OLLAMA_MODEL;
+    this.ollamaModel = this.convertStringToModel(process.env.OLLAMA_MODEL);
     this.logger.debug(
       `Ollama URL: ${this.ollamaUrl}, Model: ${this.ollamaModel}`,
     );
@@ -61,12 +65,28 @@ export class OllamaService {
     });
   }
 
+  // Convert string to Model enum
+  // https://www.reddit.com/r/typescript/comments/gekbfj/convert_string_to_enum_values/
+  private convertStringToModel(modelString: string): Model {
+    const modelList = Object.values(Model);
+    const model = modelList.find((ele) => modelString == ele);
+    if (model === undefined) {
+      throw new Error(
+        `Invalid OLLAMA_MODEL ${modelString}, valid values are: ${modelList.join(', ')}`,
+      );
+    }
+    return model;
+  }
+
   // Call /api/generate
-  async callGenerate(prompt: string): Promise<string> {
+  async callGenerate(
+    prompt: string,
+    model: Model = this.ollamaModel,
+  ): Promise<string> {
     const response = await this.client.post<{
       response: string;
     }>('/api/generate', {
-      model: this.ollamaModel,
+      model: model,
       prompt: prompt,
       stream: false,
     });
@@ -90,39 +110,49 @@ export class OllamaService {
   }
 
   async callLlama(prompt: string): Promise<any> {
-    const response = await this.httpService
-      .post(`${this.ollamaUrl}/completions`, {
-        model: this.ollamaModel, //'llama3.2',//'codellama',
-        prompt: prompt,
-      })
-      .toPromise();
-    return response.data;
+    try {
+      const response = await this.httpService
+        .post(`${this.ollamaUrl}/v1/completions`, {
+          model: this.ollamaModel, //'llama3.2',//'codellama',
+          prompt: prompt,
+        })
+        .toPromise();
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
   }
 
   //to for unit test or code review
   async callForUnitTestOrCodeReview(
     code: string,
-    reviewType: string,
+    reviewType: ReviewType,
   ): Promise<any> {
     let prompt = '';
-    if (reviewType == this.code_review) {
+    if (reviewType == ReviewType.code_review) {
       prompt = this.constructCodeReviewPrompt(code);
     } else {
       prompt = this.constructUnitTestPrompt(code);
     }
     console.log(prompt);
-    const response = await this.httpService
-      .post(`${this.ollamaUrl}/completions`, {
-        model: this.model_codellama, //'llama3.2',//'codellama',
-        prompt: prompt,
-      })
-      .toPromise();
-    return response.data;
+    try {
+      const response = await this.httpService
+        .post(`${this.ollamaUrl}/v1/completions`, {
+          model: Model.codellama_7b_code, //'llama3.2',//'codellama',
+          prompt: prompt,
+        })
+        .toPromise();
+      return response.data;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
   }
 
   async callGivePythonCodeSuggestion(
     FunctionInfo: FunctionInfo,
-    SelectModule: string,
+    SelectModule: Model,
   ): Promise<any> {
     const prompt = this.constructPythonInfillPrompt(FunctionInfo, SelectModule);
     console.log(prompt);
@@ -130,20 +160,29 @@ export class OllamaService {
   }
 
   constructCodeReviewPrompt(code: string): string {
-    return 'Where is the bug in this code? \r\n\r\n ' + code;
+    // Improved prompt for code review
+    return (
+      'Please review the following code and identify any bugs or potential issues:\n\n' +
+      code
+    );
   }
 
   constructUnitTestPrompt(code: string): string {
-    return 'Write a unit test for this function: ' + code;
+    // Improved prompt for unit test generation
+    return (
+      'Please write a comprehensive unit test for the following function:\n\n' +
+      code
+    );
   }
 
   constructPythonInfillPrompt(
     FunctionInfo: FunctionInfo,
-    SelectModule: string,
+    SelectModule: Model,
   ): any {
     let result = '';
-    if (SelectModule == this.model_qwen) {
-      //pending to implement
+    if (SelectModule == Model.qwen2_5_coder_7b_instruct) {
+      // Pending to implement
+      throw new Error('Not implemented');
     } else {
       result = '<PRE> def ' + FunctionInfo['name'];
       result = result + '(' + FunctionInfo['parameters'] + '):' + '<SUF> ';
@@ -157,13 +196,14 @@ export class OllamaService {
   }
 
   // Perform Code Infill
-  async callForCodeInfill(prompt: string, SelectModule: string): Promise<any> {
+  async callForCodeInfill(prompt: string, SelectModule: Model): Promise<any> {
     let model = '';
-    if (SelectModule == this.model_qwen) model = this.model_qwen;
-    else model = this.model_codellamaInfill;
+    if (SelectModule == Model.qwen2_5_coder_7b_instruct)
+      model = Model.qwen2_5_coder_7b_instruct;
+    else model = Model.codellama_7b_code;
     console.log(model);
     const response = await this.httpService
-      .post(`${this.ollamaUrl}/completions`, {
+      .post(`${this.ollamaUrl}/v1/completions`, {
         model: model, //'llama3.2',//'codellama',
         prompt: prompt,
       })

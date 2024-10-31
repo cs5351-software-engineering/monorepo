@@ -5,8 +5,8 @@ services:
     container_name: ollama
     ports:
       - 11434:11434
-    volumes:
-      - ollama_data:/root/.ollama
+    # volumes:
+    #   - ollama_data:/root/.ollama
 
     # Enable GPU
     # https://stackoverflow.com/questions/70761192/docker-compose-equivalent-of-docker-run-gpu-all-option
@@ -18,5 +18,5 @@ services:
               count: all # alternatively, use `count: all` for all GPUs
               capabilities: [gpu]
 
-volumes:
-  ollama_data:
+# volumes:
+#   ollama_data:

@@ -68,6 +68,18 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
     finalResultObject: {},
   });
 
+  const [ollamaAnalysisResult, setOllamaAnalysisResult] = useState<{
+    [path: string]: {
+      name: string;
+      parameters: string[];
+      body: string;
+      returnType: string | null;
+      codeReview: string;
+      testCaseSuggestion: string;
+    }[];
+  }>({});
+  const [ollamaStatus, setOllamaStatus] = useState('init');
+
   // Fetch project info
   useEffect(() => {
     axios.get(`http://localhost:8080/project/id/${params.projectId}`)
@@ -140,6 +152,24 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
           clearInterval(intervalId);
         });
     }, 1000);
+  }
+
+  // Start Ollama Analysis
+  const handleStartOllamaAnalysis = async () => {
+    console.log('Start Ollama Analysis');
+    setOllamaStatus('loading');
+
+    const projectId = params.projectId;
+
+    // @Controller('code-suggestion')
+    // @Get('analyzeCodebase/:projectId')
+    // example: http://localhost:8080/code-suggestion/analyzeCodebase/1
+    const response = await axios.get(`http://localhost:8080/code-suggestion/analyzeCodebase/${projectId}`)
+    const result = response.data;
+    console.log('ollamaAnalysisResult', result);
+
+    setOllamaAnalysisResult(result);
+    setOllamaStatus('completed');
   }
 
   return (
@@ -309,7 +339,71 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
 
         {/* Ollama */}
         <TabsContent value="ollama">
-          <Button size="lg">Start Ollama Analysis</Button>
+          {ollamaStatus === 'init' ? (
+            <Button size="lg" onClick={handleStartOllamaAnalysis}>Start Ollama Analysis</Button>
+          ) : ollamaStatus === 'loading' ? (
+            <div>Loading...</div>
+          ) : ollamaStatus === 'completed' ? (
+            <Accordion type="multiple">
+              {Object.entries(ollamaAnalysisResult).map(([path, analysisResult]) => (
+                <AccordionItem value={path} key={path}>
+
+                  {/* Accordion Trigger */}
+                  <AccordionTrigger className='text-lg font-bold flex flex-row flex-none gap-2 items-center'>
+                    <div><File className="w-6 h-6" /></div>
+                    <div className='whitespace-pre-wrap break-all font-mono'>{path}</div>
+                  </AccordionTrigger>
+
+                  {/* Accordion Content */}
+                  <AccordionContent>
+                    {Object.entries(analysisResult).map(([key, result]) => (
+                      <div key={key} className='flex flex-col gap-2 mb-4'>
+
+                        {/* Name */}
+                        <div className='text-md mb-2'>
+                          <div className='font-bold'>Name:</div>
+                          <div className='whitespace-pre-wrap break-all font-mono'>{result.name}</div>
+                        </div>
+
+                        {/* Parameters */}
+                        <div className='text-md mb-2'>
+                          <div className='font-bold'>Parameters:</div>
+                          <div className='whitespace-pre-wrap break-all font-mono'>{result.parameters.join(', ')}</div>
+                        </div>
+
+                        {/* Body */}
+                        <div className='text-md mb-2'>
+                          <div className='font-bold'>Body:</div>
+                          <div className='whitespace-pre-wrap break-all font-mono'>{result.body}</div>
+                        </div>
+
+                        {/* Return Type */}
+                        <div className='text-md mb-2'>
+                          <div className='font-bold'>Return Type:</div>
+                          <div className='whitespace-pre-wrap break-all font-mono'>{result.returnType}</div>
+                        </div>
+
+                        {/* Code Review */}
+                        <div className='text-md mb-2'>
+                          <div className='font-bold'>Code Review:</div>
+                          <div className='whitespace-pre-wrap break-all font-mono'>{result.codeReview}</div>
+                        </div>
+
+                        {/* Test Case Suggestion */}
+                        <div className='text-md mb-2'>
+                          <div className='font-bold'>Test Case Suggestion:</div>
+                          <div className='whitespace-pre-wrap break-all font-mono'>{result.testCaseSuggestion}</div>
+                        </div>
+                      </div>
+                    ))}
+
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          ) : (
+            <div>Unknown</div>
+          )}
         </TabsContent>
 
         {/* Vulnerability Scanning */}

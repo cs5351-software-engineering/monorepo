@@ -5,10 +5,12 @@ import { OllamaService } from '../ollama/ollama.service';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { MinioService } from 'src/modules/file/minio/minio.service';
+import { ProjectModule } from '../project/project.module';
+import { OllamaModule } from '../ollama/ollama.module';
 
 @Module({
-  imports: [ConfigModule, HttpModule],
-  providers: [CodeSuggestionService, OllamaService, MinioService],
+  imports: [ConfigModule, HttpModule, OllamaModule, ProjectModule],
+  providers: [OllamaService, MinioService, CodeSuggestionService],
   controllers: [CodeSuggestionController],
 })
 export class CodeSuggestionModule {}
