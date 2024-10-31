@@ -31,13 +31,13 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
     projectName: string;
     description: string;
     language: string;
-    version: string;
+    currentVersion: string;
     updatedDatetime: string;
   }>({
     projectName: '',
     description: '',
     language: '',
-    version: '',
+    currentVersion: '',
     updatedDatetime: '',
   });
 
@@ -45,9 +45,7 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
   const [sonarQubeAnalysisStatus, setSonarQubeAnalysisStatus] = useState(SonarQubeAnalysisStatus.notStarted);
   const [sonarQubeAnalysisResult, setSonarQubeAnalysisResult] = useState<{
     stdout: string;
-    issueListJsonString: string;
-    filteredIssueListJsonString: string;
-    processedIssueObject: {
+    finalResultObject: {
       [filePath: string]: {
         key: string,
         rule: string,
@@ -62,13 +60,12 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
           lineNumber: number,
           line: string,
         }[],
+        ollamaResponse: string,
       }[]
     };
   }>({
     stdout: "",
-    issueListJsonString: "",
-    filteredIssueListJsonString: "",
-    processedIssueObject: {},
+    finalResultObject: {},
   });
 
   // Fetch project info
@@ -128,13 +125,11 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
 
           // Completed
           if (response.data.status === SonarQubeAnalysisStatus.completed) {
-            const processedIssueObject = JSON.parse(response.data.processedIssueObjectJsonString)
-            console.log('processedIssueObject', processedIssueObject);
+            const finalResultObject = JSON.parse(response.data.finalResultJsonString)
+            console.log('finalResultObject', finalResultObject);
             setSonarQubeAnalysisResult({
               stdout: response.data.stdout,
-              issueListJsonString: response.data.issueListJsonString,
-              filteredIssueListJsonString: response.data.filteredIssueListJsonString,
-              processedIssueObject: processedIssueObject,
+              finalResultObject: finalResultObject,
             });
             clearInterval(intervalId);
           }
@@ -162,7 +157,7 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
         </Card>
         <Card>
           <CardContent className="p-4">
-            Version: {project.version}
+            Version: {project.currentVersion}
           </CardContent>
         </Card>
         <Card>
@@ -230,7 +225,7 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
                 {/* processedIssueObject */}
                 <div className='text-lg font-bold mb-2'>processedIssueObject</div>
                 <div className='flex flex-col gap-4 mb-4'>
-                  {Object.entries(sonarQubeAnalysisResult.processedIssueObject).map(([filePath, issueList]) => (
+                  {Object.entries(sonarQubeAnalysisResult.finalResultObject).map(([filePath, issueList]) => (
 
                     // Card for each file
                     <Card key={filePath}>
@@ -246,14 +241,14 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
                             {/* Header, display issue severity, type, rule, and key */}
                             <CardHeader>
                               <div className="flex flex-row gap-2">
-                                <div className={`text-sm font-bold rounded-md px-2 py-1 ${issue.severity === 'INFO' ? 'text-blue-600 bg-blue-100' :
+                                <div className={`text-sm font-bold font-mono rounded-md px-2 py-1 ${issue.severity === 'INFO' ? 'text-blue-600 bg-blue-100' :
                                   issue.severity === 'MINOR' ? 'text-green-500 bg-green-100' :
                                     issue.severity === 'MAJOR' ? 'text-yellow-500 bg-yellow-100' :
                                       issue.severity === 'CRITICAL' ? 'text-red-500 bg-red-100' : ''
                                   }`}>{issue.severity}</div>
-                                <div className="text-sm rounded-md px-2 py-1 bg-gray-100 text-black">{issue.type}</div>
-                                <div className="text-sm rounded-md px-2 py-1 bg-gray-100 text-black">{issue.rule}</div>
-                                <div className="text-sm rounded-md px-2 py-1 bg-gray-100 text-black">{issue.key}</div>
+                                <div className="text-sm rounded-md px-2 py-1 bg-gray-100 text-black font-mono">{issue.type}</div>
+                                <div className="text-sm rounded-md px-2 py-1 bg-gray-100 text-black font-mono">{issue.rule}</div>
+                                <div className="text-sm rounded-md px-2 py-1 bg-gray-100 text-black font-mono">{issue.key}</div>
                               </div>
                             </CardHeader>
                             <CardContent className="flex flex-col gap-2">
@@ -272,7 +267,7 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
                                     <div key={index} className={`${ele.lineNumber >= issue.textRange.startLine &&
                                       ele.lineNumber <= issue.textRange.endLine ?
                                       'bg-red-100' : ''
-                                      }`}>{ele.line}</div>
+                                      }`}>{ele.lineNumber.toString().padStart(4, ' ')}|{ele.line}</div>
                                   ))}
                                 </div>
                               </div>
@@ -280,8 +275,8 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
                               {/* Response from Ollama */}
                               <div className="whitespace-pre-wrap break-all">
                                 <div className="text-md mb-2">Response from Ollama:</div>
-                                <div className="bg-gray-100 p-2 rounded-md text-black">
-                                  Response block here
+                                <div className="bg-gray-100 p-2 rounded-md text-black font-mono">
+                                  {issue.ollamaResponse}
                                 </div>
                               </div>
                             </CardContent>

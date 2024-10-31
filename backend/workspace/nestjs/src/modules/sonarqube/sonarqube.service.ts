@@ -64,7 +64,7 @@ export class SonarqubeService {
   }
 
   // Check project exist in sonarqube
-  async checkProjectExist(projectKey: string) {
+  async checkProjectExist(projectKey: string): Promise<boolean> {
     try {
       const response = await this.client.get(
         `/api/projects/search?projects=${projectKey}`,
@@ -152,7 +152,7 @@ export class SonarqubeService {
           await new Promise((resolve) => setTimeout(resolve, 2000));
 
           // Request analysis result from sonarqube
-          const sonarQubeResponse = await this.requestAnalysisResult(projectId);
+          const issueList = await this.getResultFromSonarQubeServer(projectId);
           // console.log('Sonarqube response:', sonarqubeResponse);
 
           // Process issue object
@@ -168,16 +168,10 @@ export class SonarqubeService {
           //   }[]
           // }
           const processedIssueObject = await this.processIssueList(
-            sonarQubeResponse.filteredIssueListJsonString,
+            issueList,
             path,
           );
-          console.log('Processed issue object:', processedIssueObject);
-          const processedIssueObjectJsonString =
-            JSON.stringify(processedIssueObject);
-          console.log(
-            'Processed issue object json string:',
-            processedIssueObjectJsonString,
-          );
+          // console.log('Processed issue object:', processedIssueObject);
 
           // Update status to preprocess done and start ollama
           const preprocessDoneResult = new SonarQubeAnalysisResult();
@@ -192,16 +186,14 @@ export class SonarqubeService {
 
           // Analyze by Ollama
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const responseOllama =
-            await this.analyzeByOllama(processedIssueObject);
-          console.log('Analyzed issue list:', responseOllama);
+          const finalResult = await this.analyzeByOllama(processedIssueObject);
+          // console.log('Analyzed issue list:', finalResult);
 
           // Update status to completed
           const completedResult = new SonarQubeAnalysisResult();
           completedResult.status = SonarQubeAnalysisStatus.completed;
           completedResult.stdout = stdout;
-          completedResult.processedIssueObjectJsonString =
-            processedIssueObjectJsonString;
+          completedResult.finalResultJsonString = JSON.stringify(finalResult);
           await this.sonarQubeAnalysisResultRepository.save(completedResult);
           await this.projectRepository.update(projectId, {
             sonarQubeAnalysisResult: completedResult,
@@ -240,7 +232,17 @@ export class SonarqubeService {
   }
 
   // Request analysis result from sonarqube
-  async requestAnalysisResult(projectId: number) {
+  async getResultFromSonarQubeServer(projectId: number): Promise<
+    {
+      key: string;
+      rule: string;
+      component: string;
+      message: string;
+      severity: string;
+      type: string;
+      textRange: { startLine: number; endLine: number };
+    }[]
+  > {
     const projectKey = `project-${projectId}`;
 
     // Request issue list
@@ -248,11 +250,11 @@ export class SonarqubeService {
       `/api/issues/list?project=${projectKey}`,
     );
     const issueListJson = issueListResponse.data;
-    console.log('Issue list json:', issueListJson);
+    // console.log('Issue list json:', issueListJson);
 
     const issueList = issueListJson.issues;
-    console.log('Analysis result:', issueList[0]);
-    console.log('keys:', Object.keys(issueList[0]));
+    // console.log('Analysis result:', issueList[0]);
+    // console.log('keys:', Object.keys(issueList[0]));
 
     // Filter issue list
     // Don't need line, because textRange has startLine and endLine
@@ -269,33 +271,48 @@ export class SonarqubeService {
         };
       },
     );
-    console.log('Filtered issue list:', filteredIssueList);
+    // console.log('Filtered issue list:', filteredIssueList);
 
-    const issueListJsonString = JSON.stringify(issueListJson);
-    const filteredIssueListJsonString = JSON.stringify(filteredIssueList);
-
-    return { issueListJsonString, filteredIssueListJsonString };
+    return filteredIssueList;
   }
 
   // Process issue list
-  async processIssueList(issueListJsonString: string, basePath: string) {
-    const issueList: {
+  async processIssueList(
+    issueList: {
+      key: string;
+      rule: string;
       component: string;
+      message: string;
+      severity: string;
+      type: string;
       textRange: { startLine: number; endLine: number };
-    }[] = JSON.parse(issueListJsonString);
+    }[],
+    basePath: string,
+  ): Promise<{
+    [filePath: string]: {
+      ollamaResponse: string;
+      rule: string;
+      severity: string;
+      message: string;
+      textRange: { startLine: number; endLine: number };
+      codeBlock: { lineNumber: number; line: string }[];
+    }[];
+  }> {
     if (issueList.length === 0) {
-      return [];
+      this.logger.warn('No issue found');
+      return {};
     }
     console.log('Processed issue list:', issueList[0], 'basePath:', basePath);
 
     // Add filePath to issue list
+    // split component by ':' and get the second element
     const addFilePathList = issueList.map((issue) => {
       return {
         ...issue,
         filePath: issue.component.split(':')[1],
       };
     });
-    console.log('Add filePath list:', addFilePathList);
+    // console.log('Add filePath list:', addFilePathList);
 
     // Group by filePath
     // Object.groupBy is not supported
@@ -304,7 +321,7 @@ export class SonarqubeService {
       acc[issue.filePath].push(issue);
       return acc;
     }, {});
-    console.log('Grouped list:', groupedList);
+    // console.log('Grouped list:', groupedList);
 
     // Get code content from file
     // { filePath: [line1, line2, ...] }
@@ -314,7 +331,7 @@ export class SonarqubeService {
       const lines = fileContent.split('\n');
       codeContexts[filePath] = lines;
     });
-    console.log('Code contexts:', codeContexts);
+    // console.log('Code contexts:', codeContexts);
 
     // Get code block (startLine - 5, endLine + 5) of each issue
     // and add to groupedList
@@ -325,13 +342,13 @@ export class SonarqubeService {
         startLine = startLine - 10 < 0 ? 0 : startLine - 10;
         endLine = endLine + 10 > lines.length ? lines.length : endLine + 10;
         let codeBlock = lines.slice(startLine, endLine);
-        codeBlock = codeBlock.map((line, index) => {
+        codeBlock = codeBlock.map((line: string, index: number) => {
           return { lineNumber: startLine + index + 1, line: line };
         });
         issue.codeBlock = codeBlock;
       });
     });
-    console.log('Add code blocks on groupedList:', groupedList);
+    // console.log('Add code blocks on groupedList:', groupedList);
 
     return groupedList;
   }
@@ -339,23 +356,28 @@ export class SonarqubeService {
   // Analyze by Ollama
   async analyzeByOllama(issueDict: {
     [filePath: string]: {
-      ollamaResponse: string;
       rule: string;
       severity: string;
       message: string;
+      textRange: { startLine: number; endLine: number };
       codeBlock: { lineNumber: number; line: string }[];
+      ollamaResponse: string;
     }[];
   }) {
     for (const filePath of Object.keys(issueDict)) {
       for (const issue of issueDict[filePath]) {
         // Concat code block and message as prompt
-        const prompt = `How to fix this issue? Following is code block and message:
+        const prompt = `Code block:
 \`\`\`
 ${issue.codeBlock.map(({ lineNumber, line }) => `${lineNumber}: ${line}`).join('\n')}
 \`\`\`
-Message: ${issue.message}`;
+startLine: ${issue.textRange.startLine}
+endLine: ${issue.textRange.endLine}
+message: ${issue.message}
+
+How to fix this issue? Give suggestion and keep it simple`;
         const result = await this.ollamaService.callGenerate(prompt);
-        console.log('Ollama response:', result);
+        // console.log('Ollama response:', result);
         issue.ollamaResponse = result;
       }
     }
