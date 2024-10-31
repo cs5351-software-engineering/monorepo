@@ -1,4 +1,4 @@
-FROM docker.io/ollama/ollama:0.3.12
+FROM docker.io/ollama/ollama:0.3.14
 
 # https://stackoverflow.com/questions/78688712/how-to-build-in-mistral-model-into-ollama-permanently
 RUN apt-get update && \
@@ -7,4 +7,7 @@ RUN apt-get update && \
         curl
 RUN ollama serve & \
     curl --retry 10 --retry-connrefused --retry-delay 1 http://localhost:11434/ && \
-    curl -X POST -d '{"name": "llama3.2"}' http://localhost:11434/api/pull
+    curl -X POST -d '{"name": "llama3.2:3b"}' http://localhost:11434/api/pull && \
+    curl -X POST -d '{"name": "codellama:7b-code"}' http://localhost:11434/api/pull && \
+    curl -X POST -d '{"name": "qwen2.5-coder:7b-instruct"}' http://localhost:11434/api/pull
+
