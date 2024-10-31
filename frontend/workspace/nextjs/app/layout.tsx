@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ThemeProvider } from "@/components/theme-provider"
+import React from "react";
 
 export const metadata: Metadata = {
   title: "CS5351 Software Engineering - Codebase Analysis",

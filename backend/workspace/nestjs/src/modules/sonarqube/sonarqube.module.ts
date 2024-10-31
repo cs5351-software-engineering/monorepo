@@ -12,6 +12,8 @@ import { Project } from 'src/modules/project/project.entity';
 import { OllamaService } from '../ollama/ollama.service';
 import { OllamaModule } from '../ollama/ollama.module';
 import { HttpModule } from '@nestjs/axios';
+import { CodeSuggestionModule } from '../code-suggestion/code-suggestion.module';
+import { CodeSuggestionService } from '../code-suggestion/code-suggestion.service';
 
 @Module({
   imports: [
@@ -20,6 +22,7 @@ import { HttpModule } from '@nestjs/axios';
     OllamaModule,
     HttpModule,
     TypeOrmModule.forFeature([SonarQubeAnalysisResult, Project]),
+    CodeSuggestionModule,
   ],
   providers: [
     UserService,
@@ -27,6 +30,7 @@ import { HttpModule } from '@nestjs/axios';
     ProjectService,
     MinioService,
     OllamaService,
+    CodeSuggestionService,
   ],
   controllers: [SonarqubeController],
 })

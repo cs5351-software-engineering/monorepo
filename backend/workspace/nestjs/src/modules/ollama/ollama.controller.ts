@@ -1,4 +1,13 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Query,
+  BadRequestException,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { OllamaService } from './ollama.service';
 
@@ -11,9 +20,22 @@ export class OllamaController {
   @HttpCode(HttpStatus.OK)
   @Post('call')
   async callLlama(@Body('prompt') prompt: string) {
+    if (!prompt) {
+      throw new BadRequestException('Prompt is required');
+    }
     const result = await this.ollamaService.callLlama(prompt);
     const choices = result['choices'];
     console.log(choices[0]['text']);
+    return result;
+  }
+
+  @Get('callGenerate')
+  async callGenerate(@Query('prompt') prompt: string) {
+    if (!prompt) {
+      throw new BadRequestException('Prompt is required');
+    }
+    const result = await this.ollamaService.callGenerate(prompt);
+    // console.log(result);
     return result;
   }
 

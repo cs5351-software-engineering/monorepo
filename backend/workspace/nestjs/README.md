@@ -36,11 +36,25 @@ https://blog.logrocket.com/best-methods-unzipping-files-node-js/
 pnpm add adm-zip
 ```
 
-## SonarQube Service Analysis Status
+## SonarQube Analysis Status
 
-- `Running`
-- `Scanner Done`
-- `Completed`
+- `not-started`
+- `start-scanner`
+- `scanner-done-and-start-preprocess`
+- `preprocess-done-and-start-ollama`
+- `completed`
+- `failed`
+
+```typescript
+enum SonarQubeAnalysisStatus {
+  notStarted = 'not-started',
+  startScanner = 'start-scanner',
+  scannerDoneAndStartPreprocess = 'scanner-done-and-start-preprocess',
+  preprocessDoneAndStartOllama = 'preprocess-done-and-start-ollama',
+  completed = 'completed',
+  failed = 'failed',
+}
+```
 
 ## SonarQube Scanner
 

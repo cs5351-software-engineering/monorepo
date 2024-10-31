@@ -14,6 +14,16 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 
+// Status enum
+enum SonarQubeAnalysisStatus {
+  notStarted = 'not-started',
+  startScanner = 'start-scanner',
+  scannerDoneAndStartPreprocess = 'scanner-done-and-start-preprocess',
+  preprocessDoneAndStartOllama = 'preprocess-done-and-start-ollama',
+  completed = 'completed',
+  failed = 'failed',
+}
+
 export default function ProjectPageById({ params }: { params: { projectId: string } }) {
   console.log('projectId', params.projectId);
 
@@ -21,23 +31,21 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
     projectName: string;
     description: string;
     language: string;
-    version: string;
+    currentVersion: string;
     updatedDatetime: string;
   }>({
     projectName: '',
     description: '',
     language: '',
-    version: '',
+    currentVersion: '',
     updatedDatetime: '',
   });
 
   const [sonarQubeAnalysisProgress, setSonarQubeAnalysisProgress] = useState(0);
-  const [sonarQubeAnalysisStatus, setSonarQubeAnalysisStatus] = useState("Not Started");
+  const [sonarQubeAnalysisStatus, setSonarQubeAnalysisStatus] = useState(SonarQubeAnalysisStatus.notStarted);
   const [sonarQubeAnalysisResult, setSonarQubeAnalysisResult] = useState<{
     stdout: string;
-    issueListJsonString: string;
-    filteredIssueListJsonString: string;
-    processedIssueObject: {
+    finalResultObject: {
       [filePath: string]: {
         key: string,
         rule: string,
@@ -52,15 +60,15 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
           lineNumber: number,
           line: string,
         }[],
+        ollamaResponse: string,
       }[]
     };
   }>({
     stdout: "",
-    issueListJsonString: "",
-    filteredIssueListJsonString: "",
-    processedIssueObject: {},
+    finalResultObject: {},
   });
 
+  // Fetch project info
   useEffect(() => {
     axios.get(`http://localhost:8080/project/id/${params.projectId}`)
       .then(response => {
@@ -76,7 +84,7 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
     console.log('Start Sonarqube Analysis, projectId:', projectId);
 
     // Set sonarQubeAnalysisStatus to "Scanning"
-    setSonarQubeAnalysisStatus("Running");
+    setSonarQubeAnalysisStatus(SonarQubeAnalysisStatus.startScanner);
     setSonarQubeAnalysisProgress(0);
 
     // Start Sonarqube Scanner
@@ -88,7 +96,7 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
         console.error('Error starting Sonarqube Analysis:', error);
       });
 
-    setSonarQubeAnalysisProgress(30);
+    setSonarQubeAnalysisProgress(25);
 
     // Ping for status every 1 seconds until "Completed" or "Failed"
     // backend: @Get('getAnalysisResult/:projectId')
@@ -96,30 +104,39 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
       axios.get(`http://localhost:8080/sonarqube/getAnalysisResult/${projectId}`)
         .then(response => {
           console.log('Sonarqube Analysis result:', response.data);
+
+          // Set status and clear interval if failed
           setSonarQubeAnalysisStatus(response.data.status);
-          if (response.data.status === 'Scanner Done') {
-            setSonarQubeAnalysisProgress(60);
-          }
-          else if (response.data.status === 'Completed') {
-            setSonarQubeAnalysisProgress(100);
-            const processedIssueObject = JSON.parse(response.data.processedIssueObjectJsonString)
-            console.log('processedIssueObject', processedIssueObject);
-            setSonarQubeAnalysisResult({
-              stdout: response.data.stdout,
-              issueListJsonString: response.data.issueListJsonString,
-              filteredIssueListJsonString: response.data.filteredIssueListJsonString,
-              processedIssueObject: processedIssueObject,
-            });
+          if (response.data.status === SonarQubeAnalysisStatus.failed) {
+            setSonarQubeAnalysisStatus(SonarQubeAnalysisStatus.failed);
             clearInterval(intervalId);
           }
-          else if (response.data.status === 'Failed') {
-            setSonarQubeAnalysisStatus("Failed");
+
+          // Update progress bar
+          if (response.data.status === SonarQubeAnalysisStatus.scannerDoneAndStartPreprocess) {
+            setSonarQubeAnalysisProgress(50);
+          }
+          else if (response.data.status === SonarQubeAnalysisStatus.preprocessDoneAndStartOllama) {
+            setSonarQubeAnalysisProgress(75);
+          }
+          else if (response.data.status === SonarQubeAnalysisStatus.completed) {
+            setSonarQubeAnalysisProgress(100);
+          }
+
+          // Completed
+          if (response.data.status === SonarQubeAnalysisStatus.completed) {
+            const finalResultObject = JSON.parse(response.data.finalResultJsonString)
+            console.log('finalResultObject', finalResultObject);
+            setSonarQubeAnalysisResult({
+              stdout: response.data.stdout,
+              finalResultObject: finalResultObject,
+            });
             clearInterval(intervalId);
           }
         })
         .catch(error => {
           console.error('Error getting Sonarqube Analysis result:', error);
-          setSonarQubeAnalysisStatus("Failed");
+          setSonarQubeAnalysisStatus(SonarQubeAnalysisStatus.failed);
           clearInterval(intervalId);
         });
     }, 1000);
@@ -140,7 +157,7 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
         </Card>
         <Card>
           <CardContent className="p-4">
-            Version: {project.version}
+            Version: {project.currentVersion}
           </CardContent>
         </Card>
         <Card>
@@ -180,19 +197,27 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
 
         {/* Sonarqube */}
         <TabsContent value="sonarqube">
-          {sonarQubeAnalysisStatus === "Not Started" ? (
+          {sonarQubeAnalysisStatus === SonarQubeAnalysisStatus.notStarted ? (
             <Button size="lg" onClick={handleStartSonarqubeAnalysis}>Start Sonarqube Analysis</Button>
-          ) : sonarQubeAnalysisStatus === "Running" ? (
+          ) : sonarQubeAnalysisStatus === SonarQubeAnalysisStatus.startScanner ? (
             <>
               <Progress value={sonarQubeAnalysisProgress} className="w-[100%]" />
               <div className="text-sm mt-2">Scanning by SonarQube Scanner ...</div>
             </>
-          ) : sonarQubeAnalysisStatus === "Scanner Done" ? (
+          ) : sonarQubeAnalysisStatus === SonarQubeAnalysisStatus.scannerDoneAndStartPreprocess ? (
             <>
               <Progress value={sonarQubeAnalysisProgress} className="w-[100%]" />
-              <div className="text-sm mt-2">Scanner Done, waiting for SonarQube server analysis result ...</div>
+              <div className="text-sm mt-2">Scanning by SonarQube Scanner ... Done</div>
+              <div className="text-sm mt-2">Getting result from SonarQube server and preprocess ...</div>
             </>
-          ) : sonarQubeAnalysisStatus === "Completed" ? (
+          ) : sonarQubeAnalysisStatus === SonarQubeAnalysisStatus.preprocessDoneAndStartOllama ? (
+            <>
+              <Progress value={sonarQubeAnalysisProgress} className="w-[100%]" />
+              <div className="text-sm mt-2">Scanning by SonarQube Scanner ... Done</div>
+              <div className="text-sm mt-2">Getting result from SonarQube server and preprocess ... Done</div>
+              <div className="text-sm mt-2">Analysis by Ollama ...</div>
+            </>
+          ) : sonarQubeAnalysisStatus === SonarQubeAnalysisStatus.completed ? (
             <>
               <div className="text-lg font-bold mb-2">Sonarqube Analysis Result</div>
               <div>
@@ -200,8 +225,9 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
                 {/* processedIssueObject */}
                 <div className='text-lg font-bold mb-2'>processedIssueObject</div>
                 <div className='flex flex-col gap-4 mb-4'>
-                  {Object.entries(sonarQubeAnalysisResult.processedIssueObject).map(([filePath, issueList]) => (
-                    // Create a card for each file
+                  {Object.entries(sonarQubeAnalysisResult.finalResultObject).map(([filePath, issueList]) => (
+
+                    // Card for each file
                     <Card key={filePath}>
                       <CardHeader>
                         <CardTitle className='text-lg font-bold font-mono flex flex-row gap-2 items-center'>
@@ -215,14 +241,14 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
                             {/* Header, display issue severity, type, rule, and key */}
                             <CardHeader>
                               <div className="flex flex-row gap-2">
-                                <div className={`text-sm font-bold rounded-md px-2 py-1 ${issue.severity === 'INFO' ? 'text-blue-600 bg-blue-100' :
+                                <div className={`text-sm font-bold font-mono rounded-md px-2 py-1 ${issue.severity === 'INFO' ? 'text-blue-600 bg-blue-100' :
                                   issue.severity === 'MINOR' ? 'text-green-500 bg-green-100' :
                                     issue.severity === 'MAJOR' ? 'text-yellow-500 bg-yellow-100' :
                                       issue.severity === 'CRITICAL' ? 'text-red-500 bg-red-100' : ''
                                   }`}>{issue.severity}</div>
-                                <div className="text-sm rounded-md px-2 py-1 bg-gray-100 text-black">{issue.type}</div>
-                                <div className="text-sm rounded-md px-2 py-1 bg-gray-100 text-black">{issue.rule}</div>
-                                <div className="text-sm rounded-md px-2 py-1 bg-gray-100 text-black">{issue.key}</div>
+                                <div className="text-sm rounded-md px-2 py-1 bg-gray-100 text-black font-mono">{issue.type}</div>
+                                <div className="text-sm rounded-md px-2 py-1 bg-gray-100 text-black font-mono">{issue.rule}</div>
+                                <div className="text-sm rounded-md px-2 py-1 bg-gray-100 text-black font-mono">{issue.key}</div>
                               </div>
                             </CardHeader>
                             <CardContent className="flex flex-col gap-2">
@@ -236,12 +262,12 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
                               {/* Code snippet */}
                               <div className="whitespace-pre-wrap break-all">
                                 <div className="text-md mb-2">Code snippet (line {issue.textRange.startLine} to {issue.textRange.endLine}):</div>
-                                <div className="bg-gray-100 p-2 rounded-md text-black">
+                                <div className="bg-gray-100 p-2 rounded-md text-black font-mono">
                                   {issue.codeBlock.map((ele, index) => (
                                     <div key={index} className={`${ele.lineNumber >= issue.textRange.startLine &&
                                       ele.lineNumber <= issue.textRange.endLine ?
                                       'bg-red-100' : ''
-                                      }`}>{ele.line}</div>
+                                      }`}>{ele.lineNumber.toString().padStart(4, ' ')}|{ele.line}</div>
                                   ))}
                                 </div>
                               </div>
@@ -249,8 +275,8 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
                               {/* Response from Ollama */}
                               <div className="whitespace-pre-wrap break-all">
                                 <div className="text-md mb-2">Response from Ollama:</div>
-                                <div className="bg-gray-100 p-2 rounded-md text-black">
-                                  Response block here
+                                <div className="bg-gray-100 p-2 rounded-md text-black font-mono">
+                                  {issue.ollamaResponse}
                                 </div>
                               </div>
                             </CardContent>
@@ -261,24 +287,12 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
                   ))}
                 </div>
 
-                {/* filteredIssueListJsonString */}
-                {/* <div className='text-lg font-bold mb-2'>filteredIssueListJsonString</div>
-                <div className='text-sm whitespace-pre-wrap break-all'>
-                  {JSON.stringify(JSON.parse(sonarQubeAnalysisResult.filteredIssueListJsonString), null, 2)}
-                </div> */}
-
-                {/* issueListJsonString */}
-                {/* <div className='text-lg font-bold mb-2'>issueListJsonString</div>
-                <div className='text-sm whitespace-pre-wrap break-all'>
-                  {JSON.stringify(JSON.parse(sonarQubeAnalysisResult.issueListJsonString), null, 2)}
-                </div> */}
-
                 {/* stdout */}
                 <Accordion type="single" collapsible>
                   <AccordionItem value="item-1">
                     <AccordionTrigger className='text-lg font-bold'>stdout</AccordionTrigger>
                     <AccordionContent>
-                      <div className='text-sm whitespace-pre-wrap break-all bg-gray-100 p-2 rounded-md text-black'>
+                      <div className='text-sm whitespace-pre-wrap break-all bg-gray-100 p-2 rounded-md text-black font-mono'>
                         {sonarQubeAnalysisResult.stdout}
                       </div>
                     </AccordionContent>
@@ -286,7 +300,7 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
                 </Accordion>
               </div>
             </>
-          ) : sonarQubeAnalysisStatus === "Failed" ? (
+          ) : sonarQubeAnalysisStatus === SonarQubeAnalysisStatus.failed ? (
             <div>Failed</div>
           ) : (
             <div>Unknown</div>

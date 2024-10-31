@@ -17,18 +17,12 @@ export class SonarQubeAnalysisResult {
   @Column({ name: 'Stdout', type: 'text', nullable: true })
   stdout: string | null;
 
-  @Column({ name: 'IssueListJsonString', type: 'text', nullable: true })
-  issueListJsonString: string | null;
-
-  @Column({ name: 'FilteredIssueListJsonString', type: 'text', nullable: true })
-  filteredIssueListJsonString: string | null;
-
   @Column({
-    name: 'processedIssueObjectJsonString',
+    name: 'finalResultJsonString',
     type: 'text',
     nullable: true,
   })
-  processedIssueObjectJsonString: string | null;
+  finalResultJsonString: string | null;
 
   @CreateDateColumn({ name: 'CreatedDatetime' })
   createdDatetime: Date;

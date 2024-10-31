@@ -190,6 +190,8 @@ export class CodeSuggestionService {
     for (const sourceFilePath of filePathList) {
       const codeReviewList: CodeSuggestion[] = [];
       let functionContentList: string[] = [];
+
+      // Parsing Python AST
       try {
         console.log('Get Python content:', sourceFilePath);
         functionContentList =
@@ -197,7 +199,7 @@ export class CodeSuggestionService {
             sourceFilePath,
           );
       } catch {
-        //cannot get content information
+        // if cannot get content information, pass whole file content
         console.log('Get Python content: failed');
         functionContentList.push(fs.readFileSync(sourceFilePath, 'utf8'));
       }

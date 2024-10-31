@@ -4,10 +4,8 @@ import React, { createContext, useEffect, useState } from 'react';
 import Link from "next/link"
 import {
   Home,
-  // LineChart,
   Package,
   Package2,
-  Search,
   Settings,
 } from "lucide-react"
 import {
@@ -27,7 +25,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import {
   Tooltip,
   TooltipContent,
@@ -222,21 +219,11 @@ export default function DashboardLayout({
                   </BreadcrumbList>
                 </Breadcrumb>
 
-                {/* Search bar */}
-                <div className="relative ml-auto flex-1 md:grow-0">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Search..."
-                    className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]"
-                  />
-                </div>
-
                 {/* User info, name, email, logout */}
                 {userInfo && (
-                  <>
+                  <div className="flex items-center justify-end flex-1">
                     <div className="ml-2">{userInfo?.name}</div>
-                    <div className="ml-2">{userInfo?.email}</div>
+                    <div className="ml-2 mr-2">{userInfo?.email}</div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="icon" className="overflow-hidden rounded-full">
@@ -252,7 +239,7 @@ export default function DashboardLayout({
                         <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </>
+                  </div>
                 )}
               </header>
 

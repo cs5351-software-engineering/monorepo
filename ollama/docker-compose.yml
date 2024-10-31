@@ -1,7 +1,7 @@
 services:
 
   ollama:
-    image: ollama/ollama
+    image: ollama-develop-image
     container_name: ollama
     ports:
       - 11434:11434
