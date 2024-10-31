@@ -17,15 +17,9 @@ export class User {
   @Column({ name: 'UserDisplayName', nullable: true })
   userDisplayName: string | null;
 
-  @Column({ name: 'Title', nullable: true })
-  title: string | null;
-
   @Column({ name: 'Email', unique: true })
   @Index({ unique: true })
   email: string;
-
-  @Column({ name: 'PasswordHash', nullable: true })
-  passwordHash: string | null;
 
   @Column({
     name: 'CreatedDatetime',
