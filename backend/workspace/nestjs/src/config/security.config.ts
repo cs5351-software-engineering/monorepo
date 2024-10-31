@@ -8,4 +8,5 @@ export const WHITELIST_ROUTES = [
   '/authorized-project',
   '/user',
   '/ollama',
+  '/code-suggestion',
 ];

@@ -9,5 +9,6 @@ import { AuthorizedProjectService } from '../authorized-project/authorized-proje
   imports: [UserModule],
   providers: [ProjectService, UserService, AuthorizedProjectService],
   controllers: [ProjectController],
+  exports: [ProjectService],
 })
 export class ProjectModule {}

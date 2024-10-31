@@ -19,6 +19,7 @@ import axios, { AxiosInstance } from 'axios';
 export interface FunctionInfo {
   name: string;
   parameters: string[];
+  body: string;
   returnType: string | null;
 }
 
@@ -37,7 +38,7 @@ export enum ReviewType {
 @Injectable()
 export class OllamaService {
   private ollamaUrl: string;
-  private ollamaModel: string;
+  private ollamaModel: Model;
   client: AxiosInstance;
 
   private readonly logger = new Logger(OllamaService.name);
@@ -51,8 +52,9 @@ export class OllamaService {
       throw new Error('OLLAMA_MODEL is not set');
     }
 
+    // Initialize the Ollama URL and model
     this.ollamaUrl = process.env.OLLAMA_ENDPOINT;
-    this.ollamaModel = process.env.OLLAMA_MODEL;
+    this.ollamaModel = this.convertStringToModel(process.env.OLLAMA_MODEL);
     this.logger.debug(
       `Ollama URL: ${this.ollamaUrl}, Model: ${this.ollamaModel}`,
     );
@@ -63,12 +65,28 @@ export class OllamaService {
     });
   }
 
+  // Convert string to Model enum
+  // https://www.reddit.com/r/typescript/comments/gekbfj/convert_string_to_enum_values/
+  private convertStringToModel(modelString: string): Model {
+    const modelList = Object.values(Model);
+    const model = modelList.find((ele) => modelString == ele);
+    if (model === undefined) {
+      throw new Error(
+        `Invalid OLLAMA_MODEL ${modelString}, valid values are: ${modelList.join(', ')}`,
+      );
+    }
+    return model;
+  }
+
   // Call /api/generate
-  async callGenerate(prompt: string): Promise<string> {
+  async callGenerate(
+    prompt: string,
+    model: Model = this.ollamaModel,
+  ): Promise<string> {
     const response = await this.client.post<{
       response: string;
     }>('/api/generate', {
-      model: this.ollamaModel,
+      model: model,
       prompt: prompt,
       stream: false,
     });
