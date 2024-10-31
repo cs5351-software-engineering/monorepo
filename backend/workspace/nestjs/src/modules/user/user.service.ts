@@ -75,7 +75,7 @@ export class UserService {
 
   async listProjects(email: string): Promise<AuthorizedProject[]> {
     const user = await this.userRepository.findOneBy({ email });
-    console.log(user);
+    // console.log(user);
     return user.authorizedProjects;
   }
 
