@@ -130,11 +130,19 @@ export class OllamaService {
   }
 
   constructCodeReviewPrompt(code: string): string {
-    return 'Where is the bug in this code? \r\n\r\n ' + code;
+    // Improved prompt for code review
+    return (
+      'Please review the following code and identify any bugs or potential issues:\n\n' +
+      code
+    );
   }
 
   constructUnitTestPrompt(code: string): string {
-    return 'Write a unit test for this function: ' + code;
+    // Improved prompt for unit test generation
+    return (
+      'Please write a comprehensive unit test for the following function:\n\n' +
+      code
+    );
   }
 
   constructPythonInfillPrompt(
