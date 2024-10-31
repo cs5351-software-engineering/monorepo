@@ -7,6 +7,17 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { exec } from 'child_process';
 import * as fs from 'fs';
 import { OllamaService } from '../ollama/ollama.service';
+import { CodeSuggestionService } from '../code-suggestion/code-suggestion.service';
+
+// Status enum
+enum SonarQubeAnalysisStatus {
+  notStarted = 'not-started',
+  startScanner = 'start-scanner',
+  scannerDoneAndStartPreprocess = 'scanner-done-and-start-preprocess',
+  preprocessDoneAndStartOllama = 'preprocess-done-and-start-ollama',
+  completed = 'completed',
+  failed = 'failed',
+}
 
 @Injectable()
 export class SonarqubeService {
@@ -14,6 +25,7 @@ export class SonarqubeService {
   sonarqubeToken: string;
   sonarScannerPath: string;
   client: AxiosInstance;
+
   private readonly logger = new Logger(SonarqubeService.name);
 
   constructor(
@@ -22,6 +34,7 @@ export class SonarqubeService {
     @InjectRepository(SonarQubeAnalysisResult)
     private sonarQubeAnalysisResultRepository: Repository<SonarQubeAnalysisResult>,
     private ollamaService: OllamaService,
+    private codeSuggestionService: CodeSuggestionService,
   ) {
     this.sonarqubeUrl = process.env.SONARQUBE_URL;
     this.sonarqubeToken = process.env.SONARQUBE_TOKEN;
@@ -125,9 +138,10 @@ export class SonarqubeService {
             return;
           }
 
-          // Update analysis result to database
+          // Update status to scanner done and start preprocess
           const scannerDoneResult = new SonarQubeAnalysisResult();
-          scannerDoneResult.status = 'Scanner Done';
+          scannerDoneResult.status =
+            SonarQubeAnalysisStatus.scannerDoneAndStartPreprocess;
           await this.sonarQubeAnalysisResultRepository.save(scannerDoneResult);
           await this.projectRepository.update(projectId, {
             sonarQubeAnalysisResult: scannerDoneResult,
@@ -165,19 +179,27 @@ export class SonarqubeService {
             processedIssueObjectJsonString,
           );
 
+          // Update status to preprocess done and start ollama
+          const preprocessDoneResult = new SonarQubeAnalysisResult();
+          preprocessDoneResult.status =
+            SonarQubeAnalysisStatus.preprocessDoneAndStartOllama;
+          await this.sonarQubeAnalysisResultRepository.save(
+            preprocessDoneResult,
+          );
+          await this.projectRepository.update(projectId, {
+            sonarQubeAnalysisResult: preprocessDoneResult,
+          });
+
           // Analyze by Ollama
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          // const analyzedIssueList =
-          //   await this.analyzeByOllama(processedIssueObject);
+          const responseOllama =
+            await this.analyzeByOllama(processedIssueObject);
+          console.log('Analyzed issue list:', responseOllama);
 
-          // Update analysis result to database
+          // Update status to completed
           const completedResult = new SonarQubeAnalysisResult();
-          completedResult.status = 'Completed';
+          completedResult.status = SonarQubeAnalysisStatus.completed;
           completedResult.stdout = stdout;
-          completedResult.issueListJsonString =
-            sonarQubeResponse.issueListJsonString;
-          completedResult.filteredIssueListJsonString =
-            sonarQubeResponse.filteredIssueListJsonString;
           completedResult.processedIssueObjectJsonString =
             processedIssueObjectJsonString;
           await this.sonarQubeAnalysisResultRepository.save(completedResult);
@@ -193,7 +215,7 @@ export class SonarqubeService {
 
     // Save analysis result to project
     const runningResult = new SonarQubeAnalysisResult();
-    runningResult.status = 'Running';
+    runningResult.status = SonarQubeAnalysisStatus.startScanner;
     await this.sonarQubeAnalysisResultRepository.save(runningResult);
     await this.projectRepository.update(projectId, {
       sonarQubeAnalysisResult: runningResult,
@@ -284,7 +306,7 @@ export class SonarqubeService {
     }, {});
     console.log('Grouped list:', groupedList);
 
-    // Get code context
+    // Get code content from file
     // { filePath: [line1, line2, ...] }
     const codeContexts = {};
     Object.keys(groupedList).forEach((filePath) => {
@@ -300,8 +322,8 @@ export class SonarqubeService {
       const lines = codeContexts[filePath];
       groupedList[filePath].forEach((issue) => {
         let { startLine, endLine } = issue.textRange;
-        startLine = startLine - 5 < 0 ? 0 : startLine - 5;
-        endLine = endLine + 5 > lines.length ? lines.length : endLine + 5;
+        startLine = startLine - 10 < 0 ? 0 : startLine - 10;
+        endLine = endLine + 10 > lines.length ? lines.length : endLine + 10;
         let codeBlock = lines.slice(startLine, endLine);
         codeBlock = codeBlock.map((line, index) => {
           return { lineNumber: startLine + index + 1, line: line };
@@ -315,8 +337,28 @@ export class SonarqubeService {
   }
 
   // Analyze by Ollama
-  async analyzeByOllama(issueDict: object) {
-    // TODO: Analyze by Ollama
-    return [];
+  async analyzeByOllama(issueDict: {
+    [filePath: string]: {
+      ollamaResponse: string;
+      rule: string;
+      severity: string;
+      message: string;
+      codeBlock: { lineNumber: number; line: string }[];
+    }[];
+  }) {
+    for (const filePath of Object.keys(issueDict)) {
+      for (const issue of issueDict[filePath]) {
+        // Concat code block and message as prompt
+        const prompt = `How to fix this issue? Following is code block and message:
+\`\`\`
+${issue.codeBlock.map(({ lineNumber, line }) => `${lineNumber}: ${line}`).join('\n')}
+\`\`\`
+Message: ${issue.message}`;
+        const result = await this.ollamaService.callGenerate(prompt);
+        console.log('Ollama response:', result);
+        issue.ollamaResponse = result;
+      }
+    }
+    return issueDict;
   }
 }

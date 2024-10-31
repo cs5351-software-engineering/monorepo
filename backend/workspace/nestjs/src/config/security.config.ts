@@ -7,4 +7,5 @@ export const WHITELIST_ROUTES = [
   '/sonarqube',
   '/authorized-project',
   '/user',
+  '/ollama',
 ];
