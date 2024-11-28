@@ -56,8 +56,8 @@ const IndexPage = () => {
 
         {/* Google Login */}
         <GoogleLogin onSuccess={
-          (credentialResponse) => {
-            handleGoogleLoginSuccess(credentialResponse)
+          async (credentialResponse) => {
+            await handleGoogleLoginSuccess(credentialResponse)
             router.push('/dashboard');
           }
         } onError={() => { }} />

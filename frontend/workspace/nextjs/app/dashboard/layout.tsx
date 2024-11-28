@@ -92,8 +92,35 @@ export default function DashboardLayout({
     updatedDatetime: string;
   }[]>([]);
 
+  useEffect(() => {
+    // Get user info from local storage
+    const storedUserInfo = localStorage.getItem('userinfo');
+    if (!storedUserInfo) {
+      console.log('No user info found');
+      return;
+    }
+
+    const parsedUserInfo = JSON.parse(storedUserInfo);
+    setUserInfo(parsedUserInfo);
+
+    const userId = localStorage.getItem('userId');
+    setUserId(userId);
+  }, []);
+
   const updateProjectList = async () => {
-    const userInfo = JSON.parse(localStorage.getItem('userinfo') || '{}');
+    const userInfoRaw = localStorage.getItem('userinfo');
+    if (!userInfoRaw) {
+      console.error('No user info found');
+      return;
+    }
+    const userInfo = JSON.parse(userInfoRaw);
+    // if (!userInfo.email) {
+    //   console.error('No user email found');
+    //   return;
+    // }
+    const userId = localStorage.getItem('userId');
+    console.log("updateProjectList, userId: ", userId);
+
     const response = await axios.get('http://localhost:8080/project/list', {
       params: {
         email: userInfo.email,
@@ -105,29 +132,6 @@ export default function DashboardLayout({
 
   useEffect(() => {
     updateProjectList();
-  }, []);
-
-  useEffect(() => {
-    // Get user info from local storage
-    const storedUserInfo = localStorage.getItem('userinfo');
-    if (!storedUserInfo) {
-      console.error('No user info found');
-      return;
-    }
-
-    const parsedUserInfo = JSON.parse(storedUserInfo);
-    setUserInfo(parsedUserInfo);
-
-    // Get user id from email
-    const userId = parsedUserInfo?.email;
-    if (!userId) {
-      console.error('No user email found');
-      return;
-    }
-    axios.get(`http://localhost:8080/user/byemail?email=${userId}`).then((response) => {
-      setUserId(response.data.id);
-      console.log('User ID:', response.data.id);
-    });
   }, []);
 
   // Generate breadcrumbs
