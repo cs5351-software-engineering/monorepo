@@ -27,7 +27,7 @@ export const handleGoogleLoginSuccess = async (credentialResponse: CredentialRes
       localStorage.setItem('credential', credentialResponse.credential);
 
       const credential_decoded = jwtDecode(credentialResponse.credential);
-      console.log(credential_decoded);
+      console.log("credential_decoded: ", credential_decoded);
       localStorage.setItem('userinfo', JSON.stringify(credential_decoded));
 
       const access_token_decoded = jwtDecode(response.data.access_token);
@@ -35,6 +35,13 @@ export const handleGoogleLoginSuccess = async (credentialResponse: CredentialRes
 
       const refresh_token_decoded = jwtDecode(response.data.refreshToken);
       localStorage.setItem('refresh_token_decoded', JSON.stringify(refresh_token_decoded));
+
+      // Get user id from email
+      const userEmail = (credential_decoded as { email: string }).email;
+      const response_user_id = await axios.get(`http://localhost:8080/user/byemail?email=${userEmail}`);
+      const userId = response_user_id.data.id;
+      localStorage.setItem('userId', userId);
+      console.log('User ID:', userId);
 
     } else {
       console.error('Tokens not found in response:', response.data);
