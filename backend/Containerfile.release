@@ -6,4 +6,4 @@ WORKDIR /workspace/nestjs
 
 RUN pnpm install 
 
-CMD ["pnpm", "run", "start"]
+CMD ["pnpm", "start:dev"]

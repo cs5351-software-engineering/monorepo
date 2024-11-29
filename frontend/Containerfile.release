@@ -2,8 +2,9 @@ FROM frontend-develop-image
 
 COPY ./workspace /workspace
 
-WORKDIR /workspace/react
+WORKDIR /workspace/nextjs
 
 RUN pnpm install 
+# RUN pnpm run build
 
-CMD ["pnpm", "run", "start"]
+CMD ["pnpm", "run", "dev"]
