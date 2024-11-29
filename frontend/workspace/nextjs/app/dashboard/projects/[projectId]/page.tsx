@@ -218,8 +218,8 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
         <TabsList className="mb-2">
           <TabsTrigger value="sonarqube">Sonarqube</TabsTrigger>
           <TabsTrigger value="ollama">Ollama</TabsTrigger>
-          <TabsTrigger value="vulnerability">Vulnerability Scanning</TabsTrigger>
-          <TabsTrigger value="other">Other</TabsTrigger>
+          {/* <TabsTrigger value="vulnerability">Vulnerability Scanning</TabsTrigger>
+          <TabsTrigger value="other">Other</TabsTrigger> */}
         </TabsList>
 
         {/* Report History */}
@@ -253,7 +253,7 @@ export default function ProjectPageById({ params }: { params: { projectId: strin
               <div>
 
                 {/* processedIssueObject */}
-                <div className='text-lg font-bold mb-2'>processedIssueObject</div>
+                {/* <div className='text-lg font-bold mb-2'>processedIssueObject</div> */}
                 <div className='flex flex-col gap-4 mb-4'>
                   {Object.entries(sonarQubeAnalysisResult.finalResultObject).map(([filePath, issueList]) => (
 
