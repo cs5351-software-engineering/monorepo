@@ -16,8 +16,6 @@ services:
       POSTGRES_PASSWORD: admin
     volumes:
       - nestjs_database_data:/var/lib/postgresql/data
-    # ports:
-    #   - "5432:5432"
 
 
   nestjs_backend:
@@ -80,9 +78,6 @@ services:
       - sonarqube_extensions:/opt/sonarqube/extensions
       - sonarqube_logs:/opt/sonarqube/logs
       - sonarqube_temp:/opt/sonarqube/temp
-    # ports:
-    #   - "9000:9000"
-  
 
   sonarqube_database:
     image: postgres:15
@@ -93,15 +88,11 @@ services:
     volumes:
       - sonarqube_database:/var/lib/postgresql
       - sonarqube_database_data:/var/lib/postgresql/data
-    # ports:
-    #   - "5432:5432"
-  
+
 
   ollama:
     image: ollama/ollama
     container_name: ollama
-    # ports:
-    #   - 11434:11434
 
     # Enable GPU
     # https://stackoverflow.com/questions/70761192/docker-compose-equivalent-of-docker-run-gpu-all-option
