@@ -25,9 +25,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_ACCESS_EXPIRATION=${JWT_ACCESS_EXPIRATION}
       - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
-
-      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
-      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
 
@@ -41,27 +39,27 @@ services:
       - DB_PASSWORD=admin
       - DB_PORT=5432
       - DB_USERNAME=postgres
-    # ports:
-    #   - "3000:3000"
+    ports:
+      - "8080:8080"
     depends_on:
       - nestjs_database
 
 
   # https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html
-  pgadmin:
-    image: dpage/pgadmin4:8
-    container_name: pgadmin
-    restart: always
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=1234
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    ports:
-      - '5050:80'
-    depends_on:
-      - nestjs_database
-    stop_signal: SIGKILL
+  # pgadmin:
+  #   image: dpage/pgadmin4:8
+  #   container_name: pgadmin
+  #   restart: always
+  #   environment:
+  #     - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+  #     - PGADMIN_DEFAULT_PASSWORD=1234
+  #   volumes:
+  #     - pgadmin_data:/var/lib/pgadmin
+  #   ports:
+  #     - '5050:80'
+  #   depends_on:
+  #     - nestjs_database
+  #   stop_signal: SIGKILL
 
 
   sonarqube:
@@ -111,8 +109,8 @@ services:
       MINIO_ROOT_USER: test
       MINIO_ROOT_PASSWORD: test1234
     ports:
-      - "10000:9000"
-      - "10001:9001"
+      - "7000:9000"
+      - "7001:9001"
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001" 

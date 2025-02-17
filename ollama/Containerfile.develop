@@ -1,19 +1,19 @@
-FROM docker.io/ollama/ollama:0.3.14
+FROM docker.io/ollama/ollama:0.5.11
 
 # https://stackoverflow.com/questions/78688712/how-to-build-in-mistral-model-into-ollama-permanently
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive \
     apt-get install --no-install-recommends --assume-yes \
         curl
-RUN ollama serve & \
-    curl --retry 10 --retry-connrefused --retry-delay 1 http://localhost:11434/ && \
-    curl -X POST -d '{"name": "llama3.2:3b"}' http://localhost:11434/api/pull
-RUN ollama serve & \
-    curl --retry 10 --retry-connrefused --retry-delay 1 http://localhost:11434/ && \
-    curl -X POST -d '{"name": "codellama:7b-code"}' http://localhost:11434/api/pull
-RUN ollama serve & \
-    curl --retry 10 --retry-connrefused --retry-delay 1 http://localhost:11434/ && \
-    curl -X POST -d '{"name": "qwen2.5-coder:7b-instruct"}' http://localhost:11434/api/pull
+# RUN ollama serve & \
+#     curl --retry 10 --retry-connrefused --retry-delay 1 http://localhost:11434/ && \
+#     curl -X POST -d '{"name": "llama3.2:3b"}' http://localhost:11434/api/pull
+# RUN ollama serve & \
+#     curl --retry 10 --retry-connrefused --retry-delay 1 http://localhost:11434/ && \
+#     curl -X POST -d '{"name": "codellama:7b-code"}' http://localhost:11434/api/pull
+# RUN ollama serve & \
+#     curl --retry 10 --retry-connrefused --retry-delay 1 http://localhost:11434/ && \
+#     curl -X POST -d '{"name": "qwen2.5-coder:7b-instruct"}' http://localhost:11434/api/pull
 RUN ollama serve & \
     curl --retry 10 --retry-connrefused --retry-delay 1 http://localhost:11434/ && \
     curl -X POST -d '{"name": "qwen2.5-coder:1.5b-instruct"}' http://localhost:11434/api/pull

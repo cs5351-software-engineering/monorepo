@@ -40,8 +40,8 @@ TYPEORM_MIGRATIONS=dist/migrations/*.js
 TYPEORM_MIGRATIONS_DIR=src/migrations
 
 # Ollama
-OLLAMA_ENDPOINT=http://localhost:11434/v1
-OLLAMA_MODEL=llama3.2
+OLLAMA_ENDPOINT=http://localhost:11434
+OLLAMA_MODEL=qwen2.5-coder:1.5b-instruct
 
 # MinIO
 MINIO_ENDPOINT=localhost
@@ -52,6 +52,9 @@ MINIO_SECRETKEY=XXXXX
 # SonarQube
 SONARQUBE_URL=http://localhost:9000
 SONARQUBE_TOKEN=xxxxx
+
+# SonarQube Scanner
+SONAR_SCANNER_PATH=../sonar-scanner/bin
 ```
 
 Enter to `./backend/workspace/nestjs` folder
